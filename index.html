@@ -212,8 +212,7 @@
       margin-top: 32px;
     }
 
-    .field label,
-    .qr-field label {
+    .field label {
       display: block;
       margin: 0 0 8px;
       color: var(--muted-strong);
@@ -221,8 +220,7 @@
       font-weight: 700;
     }
 
-    .field input,
-    .qr-field input {
+    .field input {
       width: 100%;
       height: 56px;
       border: 1px solid var(--line);
@@ -234,8 +232,7 @@
       transition: border-color .2s var(--ease), box-shadow .2s var(--ease), background .2s var(--ease);
     }
 
-    .field input:focus,
-    .qr-field input:focus {
+    .field input:focus {
       border-color: rgba(0, 113, 227, .55);
       box-shadow: 0 0 0 4px var(--blue-soft);
       background: #fff;
@@ -547,35 +544,6 @@
       word-break: keep-all;
     }
 
-    .qr-box {
-      display: grid;
-      place-items: center;
-      aspect-ratio: 1;
-      width: 100%;
-      border-radius: var(--radius);
-      background: #fff;
-      border: 1px solid var(--line);
-      overflow: hidden;
-    }
-
-    .qr-box img {
-      width: min(82%, 250px);
-      height: auto;
-      display: block;
-      image-rendering: pixelated;
-    }
-
-    .qr-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .qr-actions .secondary-btn {
-      min-height: 46px;
-      font-size: 13px;
-    }
-
     .team-report {
       display: grid;
       grid-template-columns: 220px minmax(0, 1fr);
@@ -870,23 +838,7 @@
       </div>
     </section>
 
-    <aside class="side" aria-label="공유 및 기록">
-      <section class="side-section">
-        <h2>QR 공유</h2>
-        <p>GitHub Pages에 올리면 현재 페이지 주소로 QR이 갱신됩니다.</p>
-        <div class="qr-box">
-          <img id="qrImage" alt="TPQI 공유 QR 코드">
-        </div>
-        <div class="qr-field">
-          <label for="shareUrl">페이지 주소</label>
-          <input id="shareUrl" inputmode="url" placeholder="https://사용자명.github.io/teamdiagnosis/">
-        </div>
-        <div class="qr-actions">
-          <button class="secondary-btn" type="button" id="refreshQr">QR 갱신</button>
-          <a class="secondary-btn" id="openQr" target="_blank" rel="noopener">QR 열기</a>
-        </div>
-      </section>
-
+    <aside class="side" aria-label="진단 기록">
       <section class="side-section">
         <h2>최근 진단</h2>
         <div class="member-list" id="sideMemberList"></div>
@@ -1004,8 +956,6 @@
     });
     $("#clearAllFromHome").addEventListener("click", clearTeam);
     $("#clearAllFromTeam").addEventListener("click", clearTeam);
-    $("#refreshQr").addEventListener("click", updateQr);
-    $("#shareUrl").addEventListener("change", updateQr);
 
     function startQuiz(name) {
       state.name = name;
@@ -1228,20 +1178,6 @@
         .replaceAll("'", "&#039;");
     }
 
-    function updateQr() {
-      const input = $("#shareUrl");
-      const currentUrl = input.value.trim() || getDefaultShareUrl();
-      input.value = currentUrl;
-
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=16&data=${encodeURIComponent(currentUrl)}`;
-      $("#qrImage").src = qrUrl;
-      $("#openQr").href = qrUrl;
-    }
-
-    function getDefaultShareUrl() {
-      return window.location.href.split("#")[0];
-    }
-
     let toastTimer = 0;
     function toast(message) {
       const toastEl = $("#toast");
@@ -1251,7 +1187,6 @@
       toastTimer = window.setTimeout(() => toastEl.classList.remove("show"), 2200);
     }
 
-    updateQr();
     renderSharedLists();
   </script>
 </body>
