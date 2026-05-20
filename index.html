@@ -1,0 +1,287 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); color: var(--color-text-primary); }
+.screen { display: none; padding: 1.5rem 1rem; }
+.screen.active { display: block; }
+.banner { text-align: center; padding: 2rem 1rem 1.5rem; }
+.banner h1 { font-size: 22px; font-weight: 500; margin-bottom: 4px; }
+.banner p { font-size: 14px; color: var(--color-text-secondary); }
+.badge { display: inline-block; font-size: 12px; padding: 3px 10px; border-radius: var(--border-radius-md); background: var(--color-background-info); color: var(--color-text-info); margin-bottom: 12px; }
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem; margin-bottom: 1rem; }
+.name-input-wrap { margin: 1rem 0; }
+.name-input-wrap label { font-size: 14px; color: var(--color-text-secondary); display: block; margin-bottom: 6px; }
+.name-input-wrap input { width: 100%; padding: 8px 12px; font-size: 15px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); }
+.start-btn { width: 100%; padding: 12px; font-size: 15px; font-weight: 500; border-radius: var(--border-radius-md); background: var(--color-background-info); color: var(--color-text-info); border: none; cursor: pointer; margin-top: 8px; }
+.progress-bar { height: 4px; background: var(--color-border-tertiary); border-radius: 2px; margin-bottom: 1.5rem; }
+.progress-fill { height: 100%; border-radius: 2px; background: var(--color-text-info); transition: width 0.3s; }
+.axis-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.q-text { font-size: 16px; font-weight: 500; margin-bottom: 1.5rem; line-height: 1.5; }
+.q-counter { font-size: 13px; color: var(--color-text-tertiary); margin-bottom: 8px; }
+.yn-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.yn-btn { padding: 14px; font-size: 15px; font-weight: 500; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); cursor: pointer; transition: background 0.15s; }
+.yn-btn:hover { background: var(--color-background-secondary); }
+.yn-btn.yes { border-color: var(--color-border-info); color: var(--color-text-info); }
+.yn-btn.no { border-color: var(--color-border-tertiary); }
+.result-code { font-size: 40px; font-weight: 500; text-align: center; letter-spacing: 6px; margin: 1rem 0 4px; color: var(--color-text-info); }
+.result-name { font-size: 18px; font-weight: 500; text-align: center; margin-bottom: 6px; }
+.result-comment { font-size: 14px; color: var(--color-text-secondary); text-align: center; margin-bottom: 1.5rem; line-height: 1.6; }
+.axis-row { margin-bottom: 1rem; }
+.axis-row-label { display: flex; justify-content: space-between; font-size: 13px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.bar-wrap { display: flex; align-items: center; gap: 8px; }
+.bar-bg { flex: 1; height: 8px; background: var(--color-border-tertiary); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; background: var(--color-text-info); transition: width 0.6s; }
+.bar-score { font-size: 12px; color: var(--color-text-tertiary); min-width: 28px; text-align: right; }
+.tip-box { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 1rem; margin-top: 1rem; font-size: 14px; line-height: 1.6; }
+.tip-box b { color: var(--color-text-primary); font-weight: 500; }
+.action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 1.5rem; }
+.action-btn { padding: 12px; font-size: 14px; font-weight: 500; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); cursor: pointer; }
+.action-btn.primary { background: var(--color-background-info); color: var(--color-text-info); border-color: var(--color-border-info); }
+.divider { height: 0.5px; background: var(--color-border-tertiary); margin: 1.5rem 0; }
+.section-title { font-size: 14px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 1rem; }
+.team-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 14px; }
+.team-code { font-weight: 500; color: var(--color-text-info); letter-spacing: 2px; }
+.survival { text-align: center; padding: 1rem; }
+.survival-num { font-size: 36px; font-weight: 500; color: var(--color-text-info); }
+.survival-label { font-size: 13px; color: var(--color-text-secondary); }
+</style>
+
+<h2 class="sr-only">팀플 성향 판별기 TPQI — 나의 팀플 유형은?</h2>
+
+<div id="s-intro" class="screen active">
+  <div class="banner">
+    <div class="badge">팀플 성향 판별기</div>
+    <h1>TPQI</h1>
+    <p>나의 팀플 유형은 무엇일까?<br>20문항으로 알아보는 팀플 성향</p>
+  </div>
+  <div class="card">
+    <div class="name-input-wrap">
+      <label>진단 대상 이름</label>
+      <input type="text" id="nameInput" placeholder="이름을 입력하세요" />
+    </div>
+    <p style="font-size:13px;color:var(--color-text-tertiary);margin-bottom:8px;">본인 또는 팀원을 떠올리며 솔직하게 답해주세요.</p>
+    <button class="start-btn" onclick="startDiagnosis()">진단 시작</button>
+  </div>
+</div>
+
+<div id="s-question" class="screen">
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  <div class="axis-label" id="axisLabel"></div>
+  <div class="q-counter" id="qCounter"></div>
+  <div class="q-text" id="qText"></div>
+  <div class="yn-btns">
+    <button class="yn-btn yes" onclick="answer(true)">Y &nbsp;예</button>
+    <button class="yn-btn no" onclick="answer(false)">N &nbsp;아니오</button>
+  </div>
+</div>
+
+<div id="s-result" class="screen">
+  <div class="banner" style="padding-top:1rem;">
+    <div class="badge" id="rName"></div>
+    <div class="result-code" id="rCode"></div>
+    <div class="result-name" id="rTypeName"></div>
+    <div class="result-comment" id="rComment"></div>
+  </div>
+  <div class="card">
+    <div class="section-title">축별 성향 분석</div>
+    <div id="axisResult"></div>
+  </div>
+  <div class="card">
+    <div class="tip-box" id="rTip"></div>
+  </div>
+  <div class="action-btns">
+    <button class="action-btn" onclick="goTeamReport()">팀 리포트 보기</button>
+    <button class="action-btn primary" onclick="resetForNext()">다음 팀원 진단</button>
+  </div>
+</div>
+
+<div id="s-report" class="screen">
+  <div class="banner" style="padding-top:1rem;">
+    <div class="badge">팀 리포트</div>
+    <h1 style="font-size:20px;">우리 팀 최종 결과</h1>
+  </div>
+  <div class="card">
+    <div class="section-title">팀원 목록</div>
+    <div id="teamList"></div>
+  </div>
+  <div class="card">
+    <div class="survival">
+      <div class="survival-num" id="survivalNum"></div>
+      <div class="survival-label">팀 생존 가능성</div>
+    </div>
+    <div class="tip-box" id="teamComment" style="margin-top:0.5rem;text-align:center;"></div>
+  </div>
+  <div class="action-btns">
+    <button class="action-btn primary" onclick="resetAll()" style="grid-column:1/-1;">처음부터 다시</button>
+  </div>
+</div>
+
+<script>
+const AXES = [
+  { name: '역할', aLabel: '주도형 (L)', bLabel: '지원형 (S)', aCode: 'L', bCode: 'S' },
+  { name: '접근', aLabel: '기획형 (P)', bLabel: '실행형 (E)', aCode: 'P', bCode: 'E' },
+  { name: '스타일', aLabel: '정밀형 (Q)', bLabel: '속도형 (F)', aCode: 'Q', bCode: 'F' },
+  { name: '소통', aLabel: '공유형 (C)', bLabel: '독립형 (I)', aCode: 'C', bCode: 'I' }
+];
+
+const QUESTIONS = [
+  { text: '회의에서 아무도 말을 안 하면 내가 먼저 꺼내는 편이다', axis: 0, isA: true },
+  { text: '팀 방향이 이미 정해져 있으면 굳이 바꾸려 하지 않는다', axis: 0, isA: false },
+  { text: '팀플에서 역할 분담을 내가 먼저 제안하는 편이다', axis: 0, isA: true },
+  { text: '팀 안에서 갈등이 생기면 중재보다 따르는 편이다', axis: 0, isA: false },
+  { text: '잘못된 방향으로 가고 있으면 참지 못하고 수정 의견을 낸다', axis: 0, isA: true },
+  { text: '일을 시작하기 전에 전체 흐름을 머릿속으로 정리하고 시작한다', axis: 1, isA: true },
+  { text: '계획이 없어도 일단 시작하면 어떻게든 된다고 생각한다', axis: 1, isA: false },
+  { text: '아이디어가 생기면 검토보다 바로 적용해보고 싶다', axis: 1, isA: false },
+  { text: '팀플 초반에 역할, 일정, 규칙을 문서로 정리하고 싶다', axis: 1, isA: true },
+  { text: '중간에 계획이 틀어지면 수정보다 그냥 진행하는 편이다', axis: 1, isA: false },
+  { text: '제출하고 나서도 더 잘할 수 있었는데 싶어서 아쉬울 때가 많다', axis: 2, isA: true },
+  { text: '마감 시간만 지키면 퀄리티는 어느 정도 타협할 수 있다', axis: 2, isA: false },
+  { text: '폰트, 정렬, 간격 같은 디테일이 눈에 거슬리는 편이다', axis: 2, isA: true },
+  { text: '완성도보다 제출 여부가 더 중요하다고 생각한다', axis: 2, isA: false },
+  { text: '팀원 결과물을 보면 고치고 싶은 부분이 자연스럽게 보인다', axis: 2, isA: true },
+  { text: '내 파트가 조금이라도 진행되면 팀원들에게 바로 공유한다', axis: 3, isA: true },
+  { text: '완성본이 나오기 전까지는 중간 과정을 굳이 공유 안 한다', axis: 3, isA: false },
+  { text: '팀원이 어떻게 진행하는지 궁금해서 먼저 물어보는 편이다', axis: 3, isA: true },
+  { text: '모르는 게 생겨도 혼자 해결하고 나서 공유하는 편이다', axis: 3, isA: false },
+  { text: '팀 카톡방이 조용하면 내가 먼저 분위기를 만드는 편이다', axis: 3, isA: true }
+];
+
+const TYPE_DATA = {
+  LPQC: { name: '팀플 교과서형', comment: '이끌고, 기획하고, 꼼꼼하고, 소통까지 — 팀플의 로망', tip: '팀원들 의견도 가끔 들어주세요. 당신만 완벽합니다.' },
+  LPQI: { name: '고독한 완벽주의 리더형', comment: '완벽한데 혼자 함 — 공유 한 번만 더 해주세요', tip: '공유 한 번만 더 해주세요. 팀원들도 참여하고 싶어요.' },
+  LPFC: { name: '치고나가는 팀장형', comment: '빠르게 이끌고 바로 공유 — 팀플계의 치타', tip: '속도 줄이고 팀원 챙기면 최고의 팀장입니다.' },
+  LPFI: { name: '나홀로 돌격대장형', comment: '빠르게 혼자 다 해버림 — 팀플인지 개인플인지 모호', tip: '팀원한테 일 나눠주는 연습을 해보세요.' },
+  LEQC: { name: '몸으로 이끄는 리더형', comment: '실행하면서 꼼꼼하고 소통까지 — 팀플의 기둥', tip: '기획도 조금만 하면 완벽한 리더가 됩니다.' },
+  LEQI: { name: '조용한 독주자형', comment: '혼자 꼼꼼하게 다 해오는 무언의 실행가', tip: '결과 공유 타이밍을 조금만 앞당겨 보세요.' },
+  LEFC: { name: '팀플 에너자이저형', comment: '일단 하고 바로 공유 — 팀플계의 에너자이저', tip: '이 속도 유지하세요. 팀플계의 보물입니다.' },
+  LEFI: { name: '말없이 해결하는형', comment: '말없이 빠르게 혼자 처리 — 결과로 말하는 타입', tip: '중간 공유만 해줘도 팀원들이 엄청 좋아할 거예요.' },
+  SPQC: { name: '팀플의 숨은 MVP형', comment: '지원하면서 꼼꼼하고 소통까지 — 팀플의 숨은 MVP', tip: '앞에 좀 나서도 됩니다. 충분히 자격 있어요.' },
+  SPQI: { name: '그림자 장인형', comment: '말없이 완벽하게 처리 — 있는지도 모르다가 결과로 놀람', tip: '중간에 한 번만 공유해줘도 팀원들이 안심합니다.' },
+  SPFC: { name: '팀플의 윤활유형', comment: '빠르게 지원하고 바로 공유 — 팀플의 윤활유', tip: '팀플에 꼭 필요한 존재입니다. 자신감 가지세요.' },
+  SPFI: { name: '묵묵히 제 몫 하는형', comment: '조용히 빠르게 처리 — 팀플계의 닌자', tip: '카톡 한 줄만 더 보내도 팀원들이 살아납니다.' },
+  SEQC: { name: '팀플의 기둥형', comment: '실행하면서 꼼꼼하고 소통도 잘함 — 팀플의 기둥', tip: '기획 단계에서도 의견 내보세요. 잘 하실 거예요.' },
+  SEQI: { name: '혼자서 완성하는형', comment: '혼자 꼼꼼히 해오는 묵묵한 실행가', tip: '공유 한 번만 더 — 팀원들이 당신 믿고 있어요.' },
+  SEFC: { name: '팀플의 숨은 엔진형', comment: '빠르고 협조적 — 팀플의 숨은 엔진', tip: '팀플계의 숨은 MVP입니다. 계속 이렇게 해주세요.' },
+  SEFI: { name: '결과로 말하는형', comment: '묵묵히 빠르게 혼자 처리 — 팀플계의 기계', tip: '존재만으로도 팀에 기여 중입니다. 말만 조금 더.' }
+};
+
+let currentName = '';
+let currentQ = 0;
+let aScores = [0,0,0,0];
+let bScores = [0,0,0,0];
+let teamResults = [];
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startDiagnosis() {
+  const n = document.getElementById('nameInput').value.trim();
+  if (!n) { alert('이름을 입력해주세요'); return; }
+  currentName = n;
+  currentQ = 0;
+  aScores = [0,0,0,0];
+  bScores = [0,0,0,0];
+  renderQuestion();
+  show('s-question');
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[currentQ];
+  const axis = AXES[q.axis];
+  document.getElementById('progressFill').style.width = (currentQ / 20 * 100) + '%';
+  document.getElementById('axisLabel').textContent = '[' + axis.name + ' 축]  ' + axis.aLabel + '  vs  ' + axis.bLabel;
+  document.getElementById('qCounter').textContent = currentQ + 1 + ' / 20';
+  document.getElementById('qText').textContent = q.text;
+}
+
+function answer(isYes) {
+  if (isYes) {
+    const q = QUESTIONS[currentQ];
+    if (q.isA) aScores[q.axis]++;
+    else bScores[q.axis]++;
+  }
+  currentQ++;
+  if (currentQ < 20) {
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult() {
+  document.getElementById('progressFill').style.width = '100%';
+  let code = '';
+  for (let i = 0; i < 4; i++) {
+    code += aScores[i] >= bScores[i] ? AXES[i].aCode : AXES[i].bCode;
+  }
+  const data = TYPE_DATA[code] || { name: '미분류형', comment: '희귀종 출현', tip: '팀원들과 대화를 늘려보세요.' };
+  teamResults.push({ name: currentName, code, typeName: data.name });
+
+  document.getElementById('rName').textContent = currentName;
+  document.getElementById('rCode').textContent = code;
+  document.getElementById('rTypeName').textContent = data.name;
+  document.getElementById('rComment').textContent = data.comment;
+  document.getElementById('rTip').innerHTML = '<b>처세술</b> &nbsp;' + data.tip;
+
+  let axisHTML = '';
+  for (let i = 0; i < 4; i++) {
+    const total = aScores[i] + bScores[i];
+    const aBar = total === 0 ? 50 : Math.round(aScores[i] / total * 100);
+    const winner = aScores[i] >= bScores[i] ? AXES[i].aLabel : AXES[i].bLabel;
+    axisHTML += `
+      <div class="axis-row">
+        <div class="axis-row-label">
+          <span>${AXES[i].aLabel}</span>
+          <span style="font-weight:500;color:var(--color-text-primary);">${winner}</span>
+          <span>${AXES[i].bLabel}</span>
+        </div>
+        <div class="bar-wrap">
+          <span style="font-size:12px;color:var(--color-text-tertiary);min-width:20px;">${aScores[i]}</span>
+          <div class="bar-bg"><div class="bar-fill" style="width:${aBar}%"></div></div>
+          <span style="font-size:12px;color:var(--color-text-tertiary);min-width:20px;text-align:right;">${bScores[i]}</span>
+        </div>
+      </div>`;
+  }
+  document.getElementById('axisResult').innerHTML = axisHTML;
+  show('s-result');
+}
+
+function goTeamReport() {
+  const list = document.getElementById('teamList');
+  list.innerHTML = teamResults.map(r =>
+    `<div class="team-row"><span>${r.name}</span><span class="team-code">${r.code}</span><span style="font-size:13px;color:var(--color-text-secondary);">${r.typeName}</span></div>`
+  ).join('');
+
+  const cCount = teamResults.filter(r => r.code[3] === 'C').length;
+  const lCount = teamResults.filter(r => r.code[0] === 'L').length;
+  const size = teamResults.length;
+  const commRate = Math.round(cCount / size * 50);
+  const leaderRate = lCount === 0 ? 0 : lCount === 1 ? 30 : 15;
+  const rate = Math.min(commRate + leaderRate + 20, 100);
+
+  document.getElementById('survivalNum').textContent = rate + '%';
+  const comments = [
+    [80, '드림팀입니다. 다음 팀플도 같이 하세요.'],
+    [60, '그럭저럭 굴러가는 팀. 누군가 희생 중입니다.'],
+    [40, '팀플인지 생존게임인지 불분명합니다.'],
+    [20, '해체를 진지하게 고려해보세요.'],
+    [0,  '이미 늦었습니다. 각자 도생하세요.']
+  ];
+  document.getElementById('teamComment').textContent = comments.find(([threshold]) => rate >= threshold)[1];
+  show('s-report');
+}
+
+function resetForNext() {
+  document.getElementById('nameInput').value = '';
+  show('s-intro');
+}
+
+function resetAll() {
+  teamResults = [];
+  document.getElementById('nameInput').value = '';
+  show('s-intro');
+}
+</script>
