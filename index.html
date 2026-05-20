@@ -243,6 +243,325 @@ function showResult() {
           <div class="bar-bg"><div class="bar-fill" style="width:${aBar}%"></div></div>
           <span style="font-size:12px;color:var(--color-text-tertiary);min-width:20px;text-align:right;">${bScores[i]}</span>
         </div>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes scaleIn{from{opacity:0;transform:scale(0.92)}to{opacity:1;transform:scale(1)}}
+@keyframes barGrow{from{width:0}to{width:var(--w)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.anim-fadeup{animation:fadeUp 0.4s ease both}
+.anim-scalein{animation:scaleIn 0.35s ease both}
+.anim-fadein{animation:fadeIn 0.3s ease both}
+.d1{animation-delay:0.05s}.d2{animation-delay:0.1s}.d3{animation-delay:0.15s}.d4{animation-delay:0.2s}.d5{animation-delay:0.25s}
+.wrap{max-width:390px;margin:0 auto;padding:0 0 2rem;font-family:var(--font-sans);color:var(--color-text-primary)}
+.screen{display:none}.screen.on{display:block}
+
+.intro-top{padding:3rem 1.5rem 1.5rem;text-align:center}
+.logo-pill{display:inline-block;font-size:11px;font-weight:500;letter-spacing:2px;padding:4px 12px;border-radius:20px;border:0.5px solid var(--color-border-secondary);color:var(--color-text-secondary);margin-bottom:1.5rem}
+.intro-top h1{font-size:28px;font-weight:500;line-height:1.3;margin-bottom:8px}
+.intro-top p{font-size:14px;color:var(--color-text-secondary);line-height:1.6}
+.intro-card{margin:0 1rem;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:16px;padding:1.25rem}
+.axis-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1.25rem}
+.axis-pill{font-size:12px;padding:4px 10px;border-radius:20px;background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary)}
+.name-label{font-size:13px;color:var(--color-text-secondary);margin-bottom:6px;display:block}
+.name-field{width:100%;padding:12px 14px;font-size:16px;border-radius:10px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);outline:none;transition:border-color 0.2s}
+.name-field:focus{border-color:var(--color-border-primary)}
+.start-btn{width:100%;margin-top:12px;padding:14px;font-size:15px;font-weight:500;border-radius:10px;border:none;background:var(--color-text-primary);color:var(--color-background-primary);cursor:pointer;transition:opacity 0.2s,transform 0.1s}
+.start-btn:active{transform:scale(0.98);opacity:0.85}
+
+.q-wrap{padding:1.5rem 1.5rem 2rem}
+.q-prog-row{display:flex;align-items:center;gap:10px;margin-bottom:2rem}
+.q-prog-bg{flex:1;height:3px;background:var(--color-border-tertiary);border-radius:2px;overflow:hidden}
+.q-prog-fill{height:100%;background:var(--color-text-primary);border-radius:2px;transition:width 0.4s cubic-bezier(.4,0,.2,1)}
+.q-num{font-size:13px;color:var(--color-text-tertiary);min-width:36px;text-align:right}
+.q-axis-tag{display:inline-block;font-size:11px;font-weight:500;letter-spacing:1px;padding:3px 10px;border-radius:20px;background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary);margin-bottom:1rem}
+.q-text{font-size:18px;font-weight:500;line-height:1.5;margin-bottom:2.5rem;min-height:72px}
+.yn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.yn-btn{padding:16px 12px;font-size:15px;font-weight:500;border-radius:12px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;transition:background 0.15s,transform 0.1s,border-color 0.15s;text-align:center}
+.yn-btn:active{transform:scale(0.96)}
+.yn-btn.y-btn:hover{background:var(--color-background-info);border-color:var(--color-border-info);color:var(--color-text-info)}
+.yn-btn.n-btn:hover{background:var(--color-background-secondary)}
+
+.result-wrap{padding:1.5rem}
+.result-hero{text-align:center;padding:2rem 1rem 1.5rem;background:var(--color-background-secondary);border-radius:16px;margin-bottom:1rem}
+.result-name-tag{font-size:13px;color:var(--color-text-secondary);margin-bottom:0.5rem}
+.result-code{font-size:44px;font-weight:500;letter-spacing:8px;margin-bottom:6px;color:var(--color-text-primary)}
+.result-type{font-size:17px;font-weight:500;margin-bottom:8px}
+.result-comment{font-size:13px;color:var(--color-text-secondary);line-height:1.6}
+.section-label{font-size:12px;font-weight:500;letter-spacing:1px;color:var(--color-text-tertiary);margin:1.25rem 0 0.75rem;text-transform:uppercase}
+.axis-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:1rem;margin-bottom:8px}
+.axis-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.axis-card-name{font-size:12px;color:var(--color-text-secondary)}
+.axis-card-winner{font-size:13px;font-weight:500}
+.bar-track{height:4px;background:var(--color-border-tertiary);border-radius:2px;overflow:hidden;margin-bottom:6px}
+.bar-fill{height:100%;border-radius:2px;background:var(--color-text-primary)}
+.axis-card-scores{display:flex;justify-content:space-between;font-size:11px;color:var(--color-text-tertiary)}
+.tip-card{background:var(--color-background-secondary);border-radius:12px;padding:1rem 1.1rem;margin-top:4px}
+.tip-label{font-size:11px;font-weight:500;letter-spacing:1px;color:var(--color-text-tertiary);margin-bottom:4px;text-transform:uppercase}
+.tip-text{font-size:14px;color:var(--color-text-secondary);line-height:1.6}
+.action-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:1rem}
+.act-btn{padding:13px;font-size:14px;font-weight:500;border-radius:10px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;transition:background 0.15s,transform 0.1s;text-align:center}
+.act-btn:active{transform:scale(0.97)}
+.act-btn.primary{background:var(--color-text-primary);color:var(--color-background-primary);border-color:transparent}
+
+.report-wrap{padding:1.5rem}
+.report-hero{text-align:center;padding:1.5rem 1rem;background:var(--color-background-secondary);border-radius:16px;margin-bottom:1rem}
+.survival-pct{font-size:48px;font-weight:500}
+.survival-sub{font-size:13px;color:var(--color-text-secondary);margin-top:4px}
+.team-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.team-avatar{width:36px;height:36px;border-radius:50%;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
+.team-info{flex:1}
+.team-name{font-size:14px;font-weight:500}
+.team-type{font-size:12px;color:var(--color-text-secondary)}
+.team-code-badge{font-size:13px;font-weight:500;letter-spacing:2px;color:var(--color-text-secondary)}
+.verdict-card{background:var(--color-background-secondary);border-radius:12px;padding:1rem;margin-top:1rem;text-align:center;font-size:14px;color:var(--color-text-secondary);line-height:1.6}
+.reset-btn{width:100%;margin-top:1rem;padding:14px;font-size:15px;font-weight:500;border-radius:10px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;transition:background 0.15s}
+.reset-btn:hover{background:var(--color-background-secondary)}
+</style>
+
+<h2 class="sr-only">TPQI 팀플 성향 판별기 — 20문항으로 알아보는 나의 팀플 유형</h2>
+
+<div class="wrap">
+
+<div id="s-intro" class="screen on">
+  <div class="intro-top anim-fadeup">
+    <div class="logo-pill">TPQI</div>
+    <h1>나의 팀플<br>유형은?</h1>
+    <p style="margin-top:8px">20문항으로 알아보는<br>팀플 성향 판별기</p>
+  </div>
+  <div class="intro-card anim-fadeup d2">
+    <div class="axis-pills">
+      <span class="axis-pill">주도 / 지원</span>
+      <span class="axis-pill">기획 / 실행</span>
+      <span class="axis-pill">정밀 / 속도</span>
+      <span class="axis-pill">공유 / 독립</span>
+    </div>
+    <span class="name-label">진단할 팀원 이름</span>
+    <input class="name-field" id="nameInput" type="text" placeholder="이름 입력" />
+    <button class="start-btn" onclick="startDiagnosis()">시작하기</button>
+  </div>
+</div>
+
+<div id="s-question" class="screen">
+  <div class="q-wrap">
+    <div class="q-prog-row">
+      <div class="q-prog-bg"><div class="q-prog-fill" id="progFill" style="width:0%"></div></div>
+      <div class="q-num" id="qNum">1 / 20</div>
+    </div>
+    <div id="qAxisTag" class="q-axis-tag anim-fadein">역할 축</div>
+    <div id="qText" class="q-text anim-fadeup"></div>
+    <div class="yn-row">
+      <button class="yn-btn y-btn anim-fadeup d3" onclick="answer(true)">Y &nbsp; 예</button>
+      <button class="yn-btn n-btn anim-fadeup d4" onclick="answer(false)">N &nbsp; 아니오</button>
+    </div>
+  </div>
+</div>
+
+<div id="s-result" class="screen">
+  <div class="result-wrap">
+    <div class="result-hero anim-scalein">
+      <div class="result-name-tag" id="rNameTag"></div>
+      <div class="result-code" id="rCode"></div>
+      <div class="result-type" id="rType"></div>
+      <div class="result-comment" id="rComment"></div>
+    </div>
+    <div class="section-label anim-fadeup d1">축별 분석</div>
+    <div id="axisCards"></div>
+    <div class="tip-card anim-fadeup d5">
+      <div class="tip-label">처세술</div>
+      <div class="tip-text" id="rTip"></div>
+    </div>
+    <div class="action-row">
+      <button class="act-btn anim-fadeup" onclick="goReport()">팀 리포트</button>
+      <button class="act-btn primary anim-fadeup d1" onclick="nextMember()">다음 팀원</button>
+    </div>
+  </div>
+</div>
+
+<div id="s-report" class="screen">
+  <div class="report-wrap">
+    <div class="report-hero anim-scalein">
+      <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:4px">팀 생존 가능성</div>
+      <div class="survival-pct" id="survivalPct"></div>
+      <div class="survival-sub" id="survivalSub"></div>
+    </div>
+    <div class="section-label anim-fadeup d1">팀원 목록</div>
+    <div id="teamList" class="anim-fadeup d2"></div>
+    <div class="verdict-card anim-fadeup d3" id="verdictCard"></div>
+    <button class="reset-btn anim-fadeup d4" onclick="resetAll()">처음부터 다시</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+const AXES=[
+  {name:'역할',aLabel:'주도형 (L)',bLabel:'지원형 (S)',aCode:'L',bCode:'S'},
+  {name:'접근',aLabel:'기획형 (P)',bLabel:'실행형 (E)',aCode:'P',bCode:'E'},
+  {name:'스타일',aLabel:'정밀형 (Q)',bLabel:'속도형 (F)',aCode:'Q',bCode:'F'},
+  {name:'소통',aLabel:'공유형 (C)',bLabel:'독립형 (I)',aCode:'C',bCode:'I'}
+];
+const QS=[
+  {t:'회의에서 아무도 말을 안 하면 내가 먼저 꺼내는 편이다',a:0,isA:true},
+  {t:'팀 방향이 이미 정해져 있으면 굳이 바꾸려 하지 않는다',a:0,isA:false},
+  {t:'팀플에서 역할 분담을 내가 먼저 제안하는 편이다',a:0,isA:true},
+  {t:'팀 안에서 갈등이 생기면 중재보다 따르는 편이다',a:0,isA:false},
+  {t:'잘못된 방향으로 가고 있으면 참지 못하고 수정 의견을 낸다',a:0,isA:true},
+  {t:'일을 시작하기 전에 전체 흐름을 머릿속으로 정리하고 시작한다',a:1,isA:true},
+  {t:'계획이 없어도 일단 시작하면 어떻게든 된다고 생각한다',a:1,isA:false},
+  {t:'아이디어가 생기면 검토보다 바로 적용해보고 싶다',a:1,isA:false},
+  {t:'팀플 초반에 역할, 일정, 규칙을 문서로 정리하고 싶다',a:1,isA:true},
+  {t:'중간에 계획이 틀어지면 수정보다 그냥 진행하는 편이다',a:1,isA:false},
+  {t:'제출하고 나서도 더 잘할 수 있었는데 싶어서 아쉬울 때가 많다',a:2,isA:true},
+  {t:'마감 시간만 지키면 퀄리티는 어느 정도 타협할 수 있다',a:2,isA:false},
+  {t:'폰트, 정렬, 간격 같은 디테일이 눈에 거슬리는 편이다',a:2,isA:true},
+  {t:'완성도보다 제출 여부가 더 중요하다고 생각한다',a:2,isA:false},
+  {t:'팀원 결과물을 보면 고치고 싶은 부분이 자연스럽게 보인다',a:2,isA:true},
+  {t:'내 파트가 조금이라도 진행되면 팀원들에게 바로 공유한다',a:3,isA:true},
+  {t:'완성본이 나오기 전까지는 중간 과정을 굳이 공유 안 한다',a:3,isA:false},
+  {t:'팀원이 어떻게 진행하는지 궁금해서 먼저 물어보는 편이다',a:3,isA:true},
+  {t:'모르는 게 생겨도 혼자 해결하고 나서 공유하는 편이다',a:3,isA:false},
+  {t:'팀 카톡방이 조용하면 내가 먼저 분위기를 만드는 편이다',a:3,isA:true}
+];
+const TD={
+  LPQC:{n:'팀플 교과서형',c:'이끌고 기획하고 꼼꼼하고 소통까지 — 팀플의 로망',t:'팀원 의견도 가끔 들어주세요. 당신만 완벽합니다.'},
+  LPQI:{n:'고독한 완벽주의 리더형',c:'완벽한데 혼자 함 — 공유 한 번만 더 해주세요',t:'공유 한 번만 더 해주세요. 팀원들도 참여하고 싶어요.'},
+  LPFC:{n:'치고나가는 팀장형',c:'빠르게 이끌고 바로 공유 — 팀플계의 치타',t:'속도 줄이고 팀원 챙기면 최고의 팀장입니다.'},
+  LPFI:{n:'나홀로 돌격대장형',c:'빠르게 혼자 다 해버림 — 팀플인지 개인플인지 모호',t:'팀원한테 일 나눠주는 연습을 해보세요.'},
+  LEQC:{n:'몸으로 이끄는 리더형',c:'실행하면서 꼼꼼하고 소통까지 — 팀플의 기둥',t:'기획도 조금만 하면 완벽한 리더가 됩니다.'},
+  LEQI:{n:'조용한 독주자형',c:'혼자 꼼꼼하게 다 해오는 무언의 실행가',t:'결과 공유 타이밍을 조금만 앞당겨 보세요.'},
+  LEFC:{n:'팀플 에너자이저형',c:'일단 하고 바로 공유 — 팀플계의 에너자이저',t:'이 속도 유지하세요. 팀플계의 보물입니다.'},
+  LEFI:{n:'말없이 해결하는형',c:'말없이 빠르게 혼자 처리 — 결과로 말하는 타입',t:'중간 공유만 해줘도 팀원들이 엄청 좋아할 거예요.'},
+  SPQC:{n:'팀플의 숨은 MVP형',c:'지원하면서 꼼꼼하고 소통까지 — 팀플의 숨은 MVP',t:'앞에 좀 나서도 됩니다. 충분히 자격 있어요.'},
+  SPQI:{n:'그림자 장인형',c:'말없이 완벽하게 처리 — 있는지도 모르다가 결과로 놀람',t:'중간에 한 번만 공유해줘도 팀원들이 안심합니다.'},
+  SPFC:{n:'팀플의 윤활유형',c:'빠르게 지원하고 바로 공유 — 팀플의 윤활유',t:'팀플에 꼭 필요한 존재입니다. 자신감 가지세요.'},
+  SPFI:{n:'묵묵히 제 몫 하는형',c:'조용히 빠르게 처리 — 팀플계의 닌자',t:'카톡 한 줄만 더 보내도 팀원들이 살아납니다.'},
+  SEQC:{n:'팀플의 기둥형',c:'실행하면서 꼼꼼하고 소통도 잘함 — 팀플의 기둥',t:'기획 단계에서도 의견 내보세요. 잘 하실 거예요.'},
+  SEQI:{n:'혼자서 완성하는형',c:'혼자 꼼꼼히 해오는 묵묵한 실행가',t:'공유 한 번만 더 — 팀원들이 당신 믿고 있어요.'},
+  SEFC:{n:'팀플의 숨은 엔진형',c:'빠르고 협조적 — 팀플의 숨은 엔진',t:'팀플계의 숨은 MVP입니다. 계속 이렇게 해주세요.'},
+  SEFI:{n:'결과로 말하는형',c:'묵묵히 빠르게 혼자 처리 — 팀플계의 기계',t:'존재만으로도 팀에 기여 중입니다. 말만 조금 더.'}
+};
+
+let name='',curQ=0,aS=[0,0,0,0],bS=[0,0,0,0],team=[];
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+}
+
+function reflow(el){void el.offsetWidth}
+
+function animateScreen(id){
+  show(id);
+  const s=document.getElementById(id);
+  s.querySelectorAll('.anim-fadeup,.anim-scalein,.anim-fadein').forEach(el=>{
+    el.style.animation='none';
+    reflow(el);
+    el.style.animation='';
+  });
+}
+
+function startDiagnosis(){
+  const n=document.getElementById('nameInput').value.trim();
+  if(!n){document.getElementById('nameInput').focus();return;}
+  name=n;curQ=0;aS=[0,0,0,0];bS=[0,0,0,0];
+  renderQ();
+  animateScreen('s-question');
+}
+
+function renderQ(){
+  const q=QS[curQ];
+  const ax=AXES[q.a];
+  const pct=Math.round(curQ/20*100);
+  document.getElementById('progFill').style.width=pct+'%';
+  document.getElementById('qNum').textContent=(curQ+1)+' / 20';
+  const tag=document.getElementById('qAxisTag');
+  tag.textContent=ax.name+' 축  ·  '+ax.aLabel+' vs '+ax.bLabel;
+  tag.style.animation='none';reflow(tag);tag.style.animation='';
+  const qt=document.getElementById('qText');
+  qt.style.animation='none';reflow(qt);qt.style.animation='';
+  qt.textContent=q.t;
+}
+
+function answer(isY){
+  if(isY){
+    const q=QS[curQ];
+    if(q.isA)aS[q.a]++;else bS[q.a]++;
+  }
+  curQ++;
+  if(curQ<20){renderQ();}
+  else{showResult();}
+}
+
+function showResult(){
+  document.getElementById('progFill').style.width='100%';
+  let code='';
+  for(let i=0;i<4;i++) code+=aS[i]>=bS[i]?AXES[i].aCode:AXES[i].bCode;
+  const d=TD[code]||{n:'미분류형',c:'희귀종 출현',t:'팀원들과 대화를 늘려보세요.'};
+  team.push({name,code,typeName:d.n});
+
+  document.getElementById('rNameTag').textContent=name;
+  document.getElementById('rCode').textContent=code;
+  document.getElementById('rType').textContent=d.n;
+  document.getElementById('rComment').textContent=d.c;
+  document.getElementById('rTip').textContent=d.t;
+
+  let html='';
+  for(let i=0;i<4;i++){
+    const tot=aS[i]+bS[i];
+    const aPct=tot===0?50:Math.round(aS[i]/tot*100);
+    const winner=aS[i]>=bS[i]?AXES[i].aLabel:AXES[i].bLabel;
+    html+=`<div class="axis-card anim-fadeup d${i+1}">
+      <div class="axis-card-top">
+        <span class="axis-card-name">${AXES[i].name}</span>
+        <span class="axis-card-winner">${winner}</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:${aPct}%"></div></div>
+      <div class="axis-card-scores"><span>${AXES[i].aLabel} ${aS[i]}점</span><span>${bS[i]}점 ${AXES[i].bLabel}</span></div>
+    </div>`;
+  }
+  document.getElementById('axisCards').innerHTML=html;
+  animateScreen('s-result');
+}
+
+function goReport(){
+  const cC=team.filter(r=>r.code[3]==='C').length;
+  const lC=team.filter(r=>r.code[0]==='L').length;
+  const sz=team.length;
+  const rate=Math.min(Math.round(cC/sz*50)+(lC===0?0:lC===1?30:15)+20,100);
+
+  document.getElementById('survivalPct').textContent=rate+'%';
+  const comments=[[80,'드림팀입니다. 다음 팀플도 같이 하세요.'],[60,'그럭저럭 굴러가는 팀. 누군가 희생 중입니다.'],[40,'팀플인지 생존게임인지 불분명합니다.'],[20,'해체를 진지하게 고려해보세요.'],[0,'이미 늦었습니다. 각자 도생하세요.']];
+  document.getElementById('survivalSub').textContent=comments.find(([t])=>rate>=t)[1];
+
+  const initials=n=>n.length>=2?n.slice(0,2):n;
+  document.getElementById('teamList').innerHTML=team.map(r=>`
+    <div class="team-item">
+      <div class="team-avatar">${initials(r.name)}</div>
+      <div class="team-info">
+        <div class="team-name">${r.name}</div>
+        <div class="team-type">${r.typeName}</div>
+      </div>
+      <div class="team-code-badge">${r.code}</div>
+    </div>`).join('');
+
+  document.getElementById('verdictCard').textContent=rate>=80?'팀원 구성이 이상적입니다. 이 팀 계속 하세요.':rate>=60?'소통형을 조금 더 늘리면 드림팀이 됩니다.':rate>=40?'기획형과 공유형이 더 필요합니다.':'팀 구성 재고를 권장합니다.';
+  animateScreen('s-report');
+}
+
+function nextMember(){
+  document.getElementById('nameInput').value='';
+  animateScreen('s-intro');
+}
+
+function resetAll(){
+  team=[];
+  document.getElementById('nameInput').value='';
+  animateScreen('s-intro');
+}
+</script>
+
       </div>`;
   }
   document.getElementById('axisResult').innerHTML = axisHTML;
