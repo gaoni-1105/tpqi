@@ -1,606 +1,1258 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f5f7">
+  <meta name="description" content="TPQI 팀플 성향 판별기">
+  <title>TPQI 팀플 성향 판별기</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f5f7;
+      --bg-soft: #fbfbfd;
+      --surface: rgba(255, 255, 255, .82);
+      --surface-strong: #ffffff;
+      --line: rgba(0, 0, 0, .08);
+      --text: #1d1d1f;
+      --muted: #6e6e73;
+      --muted-strong: #424245;
+      --blue: #0071e3;
+      --blue-soft: rgba(0, 113, 227, .12);
+      --green: #34c759;
+      --orange: #ff9f0a;
+      --red: #ff3b30;
+      --cyan: #00a7d8;
+      --shadow: 0 24px 70px rgba(0, 0, 0, .10);
+      --radius: 8px;
+      --ease: cubic-bezier(.2, .8, .2, 1);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+    }
 
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: var(--font-sans); color: var(--color-text-primary); }
-.screen { display: none; padding: 1.5rem 1rem; }
-.screen.active { display: block; }
-.banner { text-align: center; padding: 2rem 1rem 1.5rem; }
-.banner h1 { font-size: 22px; font-weight: 500; margin-bottom: 4px; }
-.banner p { font-size: 14px; color: var(--color-text-secondary); }
-.badge { display: inline-block; font-size: 12px; padding: 3px 10px; border-radius: var(--border-radius-md); background: var(--color-background-info); color: var(--color-text-info); margin-bottom: 12px; }
-.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem; margin-bottom: 1rem; }
-.name-input-wrap { margin: 1rem 0; }
-.name-input-wrap label { font-size: 14px; color: var(--color-text-secondary); display: block; margin-bottom: 6px; }
-.name-input-wrap input { width: 100%; padding: 8px 12px; font-size: 15px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); }
-.start-btn { width: 100%; padding: 12px; font-size: 15px; font-weight: 500; border-radius: var(--border-radius-md); background: var(--color-background-info); color: var(--color-text-info); border: none; cursor: pointer; margin-top: 8px; }
-.progress-bar { height: 4px; background: var(--color-border-tertiary); border-radius: 2px; margin-bottom: 1.5rem; }
-.progress-fill { height: 100%; border-radius: 2px; background: var(--color-text-info); transition: width 0.3s; }
-.axis-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
-.q-text { font-size: 16px; font-weight: 500; margin-bottom: 1.5rem; line-height: 1.5; }
-.q-counter { font-size: 13px; color: var(--color-text-tertiary); margin-bottom: 8px; }
-.yn-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.yn-btn { padding: 14px; font-size: 15px; font-weight: 500; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); cursor: pointer; transition: background 0.15s; }
-.yn-btn:hover { background: var(--color-background-secondary); }
-.yn-btn.yes { border-color: var(--color-border-info); color: var(--color-text-info); }
-.yn-btn.no { border-color: var(--color-border-tertiary); }
-.result-code { font-size: 40px; font-weight: 500; text-align: center; letter-spacing: 6px; margin: 1rem 0 4px; color: var(--color-text-info); }
-.result-name { font-size: 18px; font-weight: 500; text-align: center; margin-bottom: 6px; }
-.result-comment { font-size: 14px; color: var(--color-text-secondary); text-align: center; margin-bottom: 1.5rem; line-height: 1.6; }
-.axis-row { margin-bottom: 1rem; }
-.axis-row-label { display: flex; justify-content: space-between; font-size: 13px; color: var(--color-text-secondary); margin-bottom: 4px; }
-.bar-wrap { display: flex; align-items: center; gap: 8px; }
-.bar-bg { flex: 1; height: 8px; background: var(--color-border-tertiary); border-radius: 4px; overflow: hidden; }
-.bar-fill { height: 100%; border-radius: 4px; background: var(--color-text-info); transition: width 0.6s; }
-.bar-score { font-size: 12px; color: var(--color-text-tertiary); min-width: 28px; text-align: right; }
-.tip-box { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 1rem; margin-top: 1rem; font-size: 14px; line-height: 1.6; }
-.tip-box b { color: var(--color-text-primary); font-weight: 500; }
-.action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 1.5rem; }
-.action-btn { padding: 12px; font-size: 14px; font-weight: 500; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); cursor: pointer; }
-.action-btn.primary { background: var(--color-background-info); color: var(--color-text-info); border-color: var(--color-border-info); }
-.divider { height: 0.5px; background: var(--color-border-tertiary); margin: 1.5rem 0; }
-.section-title { font-size: 14px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 1rem; }
-.team-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 14px; }
-.team-code { font-weight: 500; color: var(--color-text-info); letter-spacing: 2px; }
-.survival { text-align: center; padding: 1rem; }
-.survival-num { font-size: 36px; font-weight: 500; color: var(--color-text-info); }
-.survival-label { font-size: 13px; color: var(--color-text-secondary); }
-</style>
+    * {
+      box-sizing: border-box;
+    }
 
-<h2 class="sr-only">팀플 성향 판별기 TPQI — 나의 팀플 유형은?</h2>
+    html {
+      min-height: 100%;
+      background: var(--bg);
+    }
 
-<div id="s-intro" class="screen active">
-  <div class="banner">
-    <div class="badge">팀플 성향 판별기</div>
-    <h1>TPQI</h1>
-    <p>나의 팀플 유형은 무엇일까?<br>20문항으로 알아보는 팀플 성향</p>
-  </div>
-  <div class="card">
-    <div class="name-input-wrap">
-      <label>진단 대상 이름</label>
-      <input type="text" id="nameInput" placeholder="이름을 입력하세요" />
-    </div>
-    <p style="font-size:13px;color:var(--color-text-tertiary);margin-bottom:8px;">본인 또는 팀원을 떠올리며 솔직하게 답해주세요.</p>
-    <button class="start-btn" onclick="startDiagnosis()">진단 시작</button>
-  </div>
-</div>
+    body {
+      min-height: 100%;
+      margin: 0;
+      background:
+        linear-gradient(180deg, #ffffff 0%, var(--bg) 42%, #eceef2 100%);
+      color: var(--text);
+      letter-spacing: 0;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
 
-<div id="s-question" class="screen">
-  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-  <div class="axis-label" id="axisLabel"></div>
-  <div class="q-counter" id="qCounter"></div>
-  <div class="q-text" id="qText"></div>
-  <div class="yn-btns">
-    <button class="yn-btn yes" onclick="answer(true)">Y &nbsp;예</button>
-    <button class="yn-btn no" onclick="answer(false)">N &nbsp;아니오</button>
-  </div>
-</div>
+    button,
+    input {
+      font: inherit;
+    }
 
-<div id="s-result" class="screen">
-  <div class="banner" style="padding-top:1rem;">
-    <div class="badge" id="rName"></div>
-    <div class="result-code" id="rCode"></div>
-    <div class="result-name" id="rTypeName"></div>
-    <div class="result-comment" id="rComment"></div>
-  </div>
-  <div class="card">
-    <div class="section-title">축별 성향 분석</div>
-    <div id="axisResult"></div>
-  </div>
-  <div class="card">
-    <div class="tip-box" id="rTip"></div>
-  </div>
-  <div class="action-btns">
-    <button class="action-btn" onclick="goTeamReport()">팀 리포트 보기</button>
-    <button class="action-btn primary" onclick="resetForNext()">다음 팀원 진단</button>
-  </div>
-</div>
+    button {
+      border: 0;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-<div id="s-report" class="screen">
-  <div class="banner" style="padding-top:1rem;">
-    <div class="badge">팀 리포트</div>
-    <h1 style="font-size:20px;">우리 팀 최종 결과</h1>
-  </div>
-  <div class="card">
-    <div class="section-title">팀원 목록</div>
-    <div id="teamList"></div>
-  </div>
-  <div class="card">
-    <div class="survival">
-      <div class="survival-num" id="survivalNum"></div>
-      <div class="survival-label">팀 생존 가능성</div>
-    </div>
-    <div class="tip-box" id="teamComment" style="margin-top:0.5rem;text-align:center;"></div>
-  </div>
-  <div class="action-btns">
-    <button class="action-btn primary" onclick="resetAll()" style="grid-column:1/-1;">처음부터 다시</button>
-  </div>
-</div>
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
 
-<script>
-const AXES = [
-  { name: '역할', aLabel: '주도형 (L)', bLabel: '지원형 (S)', aCode: 'L', bCode: 'S' },
-  { name: '접근', aLabel: '기획형 (P)', bLabel: '실행형 (E)', aCode: 'P', bCode: 'E' },
-  { name: '스타일', aLabel: '정밀형 (Q)', bLabel: '속도형 (F)', aCode: 'Q', bCode: 'F' },
-  { name: '소통', aLabel: '공유형 (C)', bLabel: '독립형 (I)', aCode: 'C', bCode: 'I' }
-];
+    .app {
+      width: min(1180px, 100%);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: max(18px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 18px;
+      align-items: start;
+    }
 
-const QUESTIONS = [
-  { text: '회의에서 아무도 말을 안 하면 내가 먼저 꺼내는 편이다', axis: 0, isA: true },
-  { text: '팀 방향이 이미 정해져 있으면 굳이 바꾸려 하지 않는다', axis: 0, isA: false },
-  { text: '팀플에서 역할 분담을 내가 먼저 제안하는 편이다', axis: 0, isA: true },
-  { text: '팀 안에서 갈등이 생기면 중재보다 따르는 편이다', axis: 0, isA: false },
-  { text: '잘못된 방향으로 가고 있으면 참지 못하고 수정 의견을 낸다', axis: 0, isA: true },
-  { text: '일을 시작하기 전에 전체 흐름을 머릿속으로 정리하고 시작한다', axis: 1, isA: true },
-  { text: '계획이 없어도 일단 시작하면 어떻게든 된다고 생각한다', axis: 1, isA: false },
-  { text: '아이디어가 생기면 검토보다 바로 적용해보고 싶다', axis: 1, isA: false },
-  { text: '팀플 초반에 역할, 일정, 규칙을 문서로 정리하고 싶다', axis: 1, isA: true },
-  { text: '중간에 계획이 틀어지면 수정보다 그냥 진행하는 편이다', axis: 1, isA: false },
-  { text: '제출하고 나서도 더 잘할 수 있었는데 싶어서 아쉬울 때가 많다', axis: 2, isA: true },
-  { text: '마감 시간만 지키면 퀄리티는 어느 정도 타협할 수 있다', axis: 2, isA: false },
-  { text: '폰트, 정렬, 간격 같은 디테일이 눈에 거슬리는 편이다', axis: 2, isA: true },
-  { text: '완성도보다 제출 여부가 더 중요하다고 생각한다', axis: 2, isA: false },
-  { text: '팀원 결과물을 보면 고치고 싶은 부분이 자연스럽게 보인다', axis: 2, isA: true },
-  { text: '내 파트가 조금이라도 진행되면 팀원들에게 바로 공유한다', axis: 3, isA: true },
-  { text: '완성본이 나오기 전까지는 중간 과정을 굳이 공유 안 한다', axis: 3, isA: false },
-  { text: '팀원이 어떻게 진행하는지 궁금해서 먼저 물어보는 편이다', axis: 3, isA: true },
-  { text: '모르는 게 생겨도 혼자 해결하고 나서 공유하는 편이다', axis: 3, isA: false },
-  { text: '팀 카톡방이 조용하면 내가 먼저 분위기를 만드는 편이다', axis: 3, isA: true }
-];
+    .stage,
+    .side {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+    }
 
-const TYPE_DATA = {
-  LPQC: { name: '팀플 교과서형', comment: '이끌고, 기획하고, 꼼꼼하고, 소통까지 — 팀플의 로망', tip: '팀원들 의견도 가끔 들어주세요. 당신만 완벽합니다.' },
-  LPQI: { name: '고독한 완벽주의 리더형', comment: '완벽한데 혼자 함 — 공유 한 번만 더 해주세요', tip: '공유 한 번만 더 해주세요. 팀원들도 참여하고 싶어요.' },
-  LPFC: { name: '치고나가는 팀장형', comment: '빠르게 이끌고 바로 공유 — 팀플계의 치타', tip: '속도 줄이고 팀원 챙기면 최고의 팀장입니다.' },
-  LPFI: { name: '나홀로 돌격대장형', comment: '빠르게 혼자 다 해버림 — 팀플인지 개인플인지 모호', tip: '팀원한테 일 나눠주는 연습을 해보세요.' },
-  LEQC: { name: '몸으로 이끄는 리더형', comment: '실행하면서 꼼꼼하고 소통까지 — 팀플의 기둥', tip: '기획도 조금만 하면 완벽한 리더가 됩니다.' },
-  LEQI: { name: '조용한 독주자형', comment: '혼자 꼼꼼하게 다 해오는 무언의 실행가', tip: '결과 공유 타이밍을 조금만 앞당겨 보세요.' },
-  LEFC: { name: '팀플 에너자이저형', comment: '일단 하고 바로 공유 — 팀플계의 에너자이저', tip: '이 속도 유지하세요. 팀플계의 보물입니다.' },
-  LEFI: { name: '말없이 해결하는형', comment: '말없이 빠르게 혼자 처리 — 결과로 말하는 타입', tip: '중간 공유만 해줘도 팀원들이 엄청 좋아할 거예요.' },
-  SPQC: { name: '팀플의 숨은 MVP형', comment: '지원하면서 꼼꼼하고 소통까지 — 팀플의 숨은 MVP', tip: '앞에 좀 나서도 됩니다. 충분히 자격 있어요.' },
-  SPQI: { name: '그림자 장인형', comment: '말없이 완벽하게 처리 — 있는지도 모르다가 결과로 놀람', tip: '중간에 한 번만 공유해줘도 팀원들이 안심합니다.' },
-  SPFC: { name: '팀플의 윤활유형', comment: '빠르게 지원하고 바로 공유 — 팀플의 윤활유', tip: '팀플에 꼭 필요한 존재입니다. 자신감 가지세요.' },
-  SPFI: { name: '묵묵히 제 몫 하는형', comment: '조용히 빠르게 처리 — 팀플계의 닌자', tip: '카톡 한 줄만 더 보내도 팀원들이 살아납니다.' },
-  SEQC: { name: '팀플의 기둥형', comment: '실행하면서 꼼꼼하고 소통도 잘함 — 팀플의 기둥', tip: '기획 단계에서도 의견 내보세요. 잘 하실 거예요.' },
-  SEQI: { name: '혼자서 완성하는형', comment: '혼자 꼼꼼히 해오는 묵묵한 실행가', tip: '공유 한 번만 더 — 팀원들이 당신 믿고 있어요.' },
-  SEFC: { name: '팀플의 숨은 엔진형', comment: '빠르고 협조적 — 팀플의 숨은 엔진', tip: '팀플계의 숨은 MVP입니다. 계속 이렇게 해주세요.' },
-  SEFI: { name: '결과로 말하는형', comment: '묵묵히 빠르게 혼자 처리 — 팀플계의 기계', tip: '존재만으로도 팀에 기여 중입니다. 말만 조금 더.' }
-};
+    .stage {
+      min-height: calc(100vh - 42px);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
 
-let currentName = '';
-let currentQ = 0;
-let aScores = [0,0,0,0];
-let bScores = [0,0,0,0];
-let teamResults = [];
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid var(--line);
+    }
 
-function show(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
 
-function startDiagnosis() {
-  const n = document.getElementById('nameInput').value.trim();
-  if (!n) { alert('이름을 입력해주세요'); return; }
-  currentName = n;
-  currentQ = 0;
-  aScores = [0,0,0,0];
-  bScores = [0,0,0,0];
-  renderQuestion();
-  show('s-question');
-}
+    .mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 800;
+      background: linear-gradient(145deg, #111113, #3a3a3c);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), 0 10px 22px rgba(0, 0, 0, .18);
+      flex: 0 0 auto;
+    }
 
-function renderQuestion() {
-  const q = QUESTIONS[currentQ];
-  const axis = AXES[q.axis];
-  document.getElementById('progressFill').style.width = (currentQ / 20 * 100) + '%';
-  document.getElementById('axisLabel').textContent = '[' + axis.name + ' 축]  ' + axis.aLabel + '  vs  ' + axis.bLabel;
-  document.getElementById('qCounter').textContent = currentQ + 1 + ' / 20';
-  document.getElementById('qText').textContent = q.text;
-}
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(20px, 3.2vw, 32px);
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
 
-function answer(isYes) {
-  if (isYes) {
-    const q = QUESTIONS[currentQ];
-    if (q.isA) aScores[q.axis]++;
-    else bScores[q.axis]++;
-  }
-  currentQ++;
-  if (currentQ < 20) {
-    renderQuestion();
-  } else {
-    showResult();
-  }
-}
+    .brand p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
 
-function showResult() {
-  document.getElementById('progressFill').style.width = '100%';
-  let code = '';
-  for (let i = 0; i < 4; i++) {
-    code += aScores[i] >= bScores[i] ? AXES[i].aCode : AXES[i].bCode;
-  }
-  const data = TYPE_DATA[code] || { name: '미분류형', comment: '희귀종 출현', tip: '팀원들과 대화를 늘려보세요.' };
-  teamResults.push({ name: currentName, code, typeName: data.name });
+    .count-badge {
+      min-width: 74px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: var(--bg-soft);
+      border: 1px solid var(--line);
+      color: var(--muted-strong);
+      font-size: 13px;
+      text-align: center;
+      white-space: nowrap;
+    }
 
-  document.getElementById('rName').textContent = currentName;
-  document.getElementById('rCode').textContent = code;
-  document.getElementById('rTypeName').textContent = data.name;
-  document.getElementById('rComment').textContent = data.comment;
-  document.getElementById('rTip').innerHTML = '<b>처세술</b> &nbsp;' + data.tip;
+    .screen-stack {
+      position: relative;
+      min-height: 620px;
+    }
 
-  let axisHTML = '';
-  for (let i = 0; i < 4; i++) {
-    const total = aScores[i] + bScores[i];
-    const aBar = total === 0 ? 50 : Math.round(aScores[i] / total * 100);
-    const winner = aScores[i] >= bScores[i] ? AXES[i].aLabel : AXES[i].bLabel;
-    axisHTML += `
-      <div class="axis-row">
-        <div class="axis-row-label">
-          <span>${AXES[i].aLabel}</span>
-          <span style="font-weight:500;color:var(--color-text-primary);">${winner}</span>
-          <span>${AXES[i].bLabel}</span>
+    .screen {
+      display: none;
+      padding: 24px;
+      min-height: 100%;
+      animation: liftIn .42s var(--ease) both;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes liftIn {
+      from {
+        opacity: 0;
+        transform: translateY(14px) scale(.995);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .hero-copy {
+      max-width: 680px;
+      margin: 16px 0 26px;
+    }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .headline {
+      margin: 0;
+      font-size: clamp(34px, 7vw, 66px);
+      line-height: 1.03;
+      letter-spacing: 0;
+      max-width: 720px;
+    }
+
+    .subcopy {
+      margin: 14px 0 0;
+      max-width: 560px;
+      color: var(--muted);
+      font-size: clamp(15px, 2vw, 18px);
+      line-height: 1.55;
+    }
+
+    .start-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 220px;
+      gap: 12px;
+      align-items: end;
+      max-width: 740px;
+      margin-top: 32px;
+    }
+
+    .field label,
+    .qr-field label {
+      display: block;
+      margin: 0 0 8px;
+      color: var(--muted-strong);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .field input,
+    .qr-field input {
+      width: 100%;
+      height: 56px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, .88);
+      color: var(--text);
+      padding: 0 16px;
+      outline: none;
+      transition: border-color .2s var(--ease), box-shadow .2s var(--ease), background .2s var(--ease);
+    }
+
+    .field input:focus,
+    .qr-field input:focus {
+      border-color: rgba(0, 113, 227, .55);
+      box-shadow: 0 0 0 4px var(--blue-soft);
+      background: #fff;
+    }
+
+    .primary-btn,
+    .secondary-btn,
+    .ghost-btn,
+    .choice-btn {
+      min-height: 52px;
+      border-radius: var(--radius);
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      font-weight: 750;
+      transition: transform .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease), border-color .2s var(--ease);
+    }
+
+    .primary-btn {
+      background: var(--blue);
+      color: #fff;
+      box-shadow: 0 14px 28px rgba(0, 113, 227, .24);
+      padding: 0 18px;
+    }
+
+    .secondary-btn,
+    .ghost-btn {
+      padding: 0 16px;
+      background: #fff;
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .ghost-btn {
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .primary-btn:active,
+    .secondary-btn:active,
+    .ghost-btn:active,
+    .choice-btn:active {
+      transform: scale(.985);
+    }
+
+    .mini-actions,
+    .result-actions,
+    .team-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .mini-actions {
+      margin-top: 22px;
+    }
+
+    .progress-wrap {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .progress {
+      height: 8px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(0, 0, 0, .08);
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+      transition: width .34s var(--ease);
+    }
+
+    .question-panel {
+      min-height: 390px;
+      display: grid;
+      align-content: center;
+      gap: 24px;
+    }
+
+    .axis-chip {
+      width: fit-content;
+      max-width: 100%;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--bg-soft);
+      border: 1px solid var(--line);
+      color: var(--muted-strong);
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .question-text {
+      margin: 0;
+      max-width: 780px;
+      font-size: clamp(28px, 5.7vw, 52px);
+      line-height: 1.13;
+      letter-spacing: 0;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+
+    .choice-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      max-width: 720px;
+    }
+
+    .choice-btn {
+      min-height: 78px;
+      background: #fff;
+      color: var(--text);
+      border: 1px solid var(--line);
+      font-size: 19px;
+    }
+
+    .choice-btn:hover,
+    .secondary-btn:hover,
+    .ghost-btn:hover {
+      border-color: rgba(0, 113, 227, .34);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, .08);
+    }
+
+    .choice-btn.selected {
+      color: #fff;
+      background: var(--blue);
+      border-color: var(--blue);
+    }
+
+    .result-hero {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .type-code {
+      display: inline-flex;
+      width: fit-content;
+      min-width: 116px;
+      min-height: 58px;
+      align-items: center;
+      justify-content: center;
+      padding: 0 18px;
+      border-radius: var(--radius);
+      background: #111113;
+      color: #fff;
+      font-size: 30px;
+      font-weight: 850;
+      letter-spacing: .08em;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, .2);
+    }
+
+    .result-hero h2,
+    .team-report h2 {
+      margin: 0;
+      font-size: clamp(30px, 5.4vw, 52px);
+      line-height: 1.08;
+      letter-spacing: 0;
+      word-break: keep-all;
+    }
+
+    .result-hero p,
+    .team-report p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.55;
+      word-break: keep-all;
+    }
+
+    .insight-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin: 22px 0;
+    }
+
+    .insight,
+    .axis-row,
+    .member-row,
+    .empty {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, .74);
+    }
+
+    .insight {
+      padding: 16px;
+    }
+
+    .insight span,
+    .axis-row small,
+    .member-row small {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+      margin-bottom: 6px;
+    }
+
+    .insight strong {
+      display: block;
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.5;
+      word-break: keep-all;
+    }
+
+    .axis-list,
+    .member-list {
+      display: grid;
+      gap: 10px;
+      margin: 18px 0 0;
+    }
+
+    .axis-row {
+      padding: 14px;
+    }
+
+    .axis-head,
+    .member-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .axis-head strong,
+    .member-head strong {
+      font-size: 15px;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .axis-head b,
+    .member-head b {
+      font-size: 14px;
+      color: var(--muted-strong);
+      white-space: nowrap;
+    }
+
+    .bar-track {
+      position: relative;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, .08);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 50%;
+      border-radius: inherit;
+      background: var(--blue);
+      transition: width .45s var(--ease);
+    }
+
+    .axis-labels {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+
+    .side {
+      position: sticky;
+      top: 18px;
+      display: grid;
+      gap: 18px;
+      padding: 18px;
+    }
+
+    .side-section {
+      display: grid;
+      gap: 12px;
+    }
+
+    .side-section h2 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .side-section p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      word-break: keep-all;
+    }
+
+    .qr-box {
+      display: grid;
+      place-items: center;
+      aspect-ratio: 1;
+      width: 100%;
+      border-radius: var(--radius);
+      background: #fff;
+      border: 1px solid var(--line);
+      overflow: hidden;
+    }
+
+    .qr-box img {
+      width: min(82%, 250px);
+      height: auto;
+      display: block;
+      image-rendering: pixelated;
+    }
+
+    .qr-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .qr-actions .secondary-btn {
+      min-height: 46px;
+      font-size: 13px;
+    }
+
+    .team-report {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      gap: 22px;
+      align-items: center;
+      margin: 6px 0 24px;
+    }
+
+    .rate-ring {
+      --rate: 0%;
+      width: 200px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at center, #fff 0 58%, transparent 59%),
+        conic-gradient(var(--green) var(--rate), rgba(0, 0, 0, .08) 0);
+      border: 1px solid var(--line);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .75);
+    }
+
+    .rate-ring strong {
+      font-size: 42px;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .rate-ring span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+      text-align: center;
+      margin-top: 6px;
+    }
+
+    .member-row {
+      padding: 14px;
+    }
+
+    .empty {
+      padding: 18px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(18px + env(safe-area-inset-bottom));
+      z-index: 20;
+      width: min(420px, calc(100% - 32px));
+      min-height: 48px;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      background: rgba(29, 29, 31, .9);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, 14px);
+      transition: opacity .24s var(--ease), transform .24s var(--ease);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    @media (max-width: 920px) {
+      .app {
+        display: block;
+        padding: 0;
+      }
+
+      .stage,
+      .side {
+        border-radius: 0;
+        border-left: 0;
+        border-right: 0;
+        box-shadow: none;
+      }
+
+      .stage {
+        min-height: auto;
+      }
+
+      .screen-stack {
+        min-height: 570px;
+      }
+
+      .side {
+        position: static;
+        border-top: 0;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .topbar {
+        align-items: flex-start;
+        padding: 14px;
+      }
+
+      .brand {
+        align-items: flex-start;
+      }
+
+      .mark {
+        width: 34px;
+        height: 34px;
+        font-size: 14px;
+      }
+
+      .brand p {
+        display: none;
+      }
+
+      .screen {
+        padding: 22px 14px 26px;
+      }
+
+      .hero-copy {
+        margin-top: 4px;
+      }
+
+      .start-grid,
+      .choice-grid,
+      .insight-grid,
+      .team-report {
+        grid-template-columns: 1fr;
+      }
+
+      .question-panel {
+        min-height: 430px;
+        align-content: start;
+        padding-top: 26px;
+      }
+
+      .question-text {
+        font-size: clamp(29px, 9.4vw, 42px);
+      }
+
+      .choice-btn {
+        min-height: 66px;
+      }
+
+      .rate-ring {
+        width: min(200px, 64vw);
+        justify-self: center;
+      }
+
+      .result-actions,
+      .team-actions,
+      .mini-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .primary-btn,
+      .secondary-btn,
+      .ghost-btn {
+        width: 100%;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="stage" aria-label="TPQI 진단">
+      <header class="topbar">
+        <div class="brand">
+          <div class="mark" aria-hidden="true">TP</div>
+          <div>
+            <h1>TPQI</h1>
+            <p>팀플 성향 판별기</p>
+          </div>
         </div>
-        <div class="bar-wrap">
-          <span style="font-size:12px;color:var(--color-text-tertiary);min-width:20px;">${aScores[i]}</span>
-          <div class="bar-bg"><div class="bar-fill" style="width:${aBar}%"></div></div>
-          <span style="font-size:12px;color:var(--color-text-tertiary);min-width:20px;text-align:right;">${bScores[i]}</span>
+        <div class="count-badge" id="teamCount">0명</div>
+      </header>
+
+      <div class="screen-stack">
+        <section class="screen active" id="homeScreen">
+          <div class="hero-copy">
+            <p class="eyebrow">Team Project Quotient Index</p>
+            <h2 class="headline">너의 팀플 유형은?</h2>
+            <p class="subcopy">20개의 질문으로 팀플에서의 역할, 접근 방식, 작업 스타일, 소통 성향을 판별합니다.</p>
+          </div>
+
+          <form class="start-grid" id="startForm">
+            <div class="field">
+              <label for="nameInput">진단 대상 이름</label>
+              <input id="nameInput" name="name" autocomplete="name" maxlength="18" placeholder="이름 입력">
+            </div>
+            <button class="primary-btn" type="submit">진단 시작</button>
+          </form>
+
+          <div class="mini-actions">
+            <button class="secondary-btn" type="button" id="openTeamFromHome">팀 리포트</button>
+            <button class="ghost-btn" type="button" id="clearAllFromHome">기록 초기화</button>
+          </div>
+        </section>
+
+        <section class="screen" id="quizScreen">
+          <div class="progress-wrap">
+            <div class="progress-meta">
+              <span id="progressText">Q1 / 20</span>
+              <span id="quizName">진단 중</span>
+            </div>
+            <div class="progress" aria-hidden="true">
+              <div class="progress-bar" id="progressBar"></div>
+            </div>
+          </div>
+
+          <div class="question-panel">
+            <div class="axis-chip" id="axisChip">역할</div>
+            <h2 class="question-text" id="questionText"></h2>
+            <div class="choice-grid" aria-label="답변 선택">
+              <button class="choice-btn" type="button" data-answer="true">예</button>
+              <button class="choice-btn" type="button" data-answer="false">아니오</button>
+            </div>
+            <div class="mini-actions">
+              <button class="ghost-btn" type="button" id="prevQuestion">이전</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen" id="resultScreen">
+          <div class="result-hero">
+            <div class="type-code" id="resultCode">TPQI</div>
+            <h2 id="resultName">진단 결과</h2>
+            <p id="resultComment"></p>
+          </div>
+
+          <div class="insight-grid">
+            <div class="insight">
+              <span>진단 대상</span>
+              <strong id="resultPerson"></strong>
+            </div>
+            <div class="insight">
+              <span>처세술</span>
+              <strong id="resultTip"></strong>
+            </div>
+          </div>
+
+          <div class="axis-list" id="axisList"></div>
+
+          <div class="result-actions">
+            <button class="primary-btn" type="button" id="addMember">팀원 추가</button>
+            <button class="secondary-btn" type="button" id="openTeamFromResult">팀 리포트</button>
+          </div>
+        </section>
+
+        <section class="screen" id="teamScreen">
+          <div class="team-report">
+            <div class="rate-ring" id="rateRing">
+              <div>
+                <strong id="survivalRate">0%</strong>
+                <span>생존 가능성</span>
+              </div>
+            </div>
+            <div>
+              <p class="eyebrow">우리 팀 최종 리포트</p>
+              <h2 id="teamHeadline">팀원 분석 대기 중</h2>
+              <p id="teamComment">팀원 2명 이상이면 최종 리포트가 완성됩니다.</p>
+            </div>
+          </div>
+
+          <div class="member-list" id="memberList"></div>
+
+          <div class="team-actions">
+            <button class="primary-btn" type="button" id="addMemberFromTeam">팀원 추가</button>
+            <button class="ghost-btn" type="button" id="clearAllFromTeam">기록 초기화</button>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <aside class="side" aria-label="공유 및 기록">
+      <section class="side-section">
+        <h2>QR 공유</h2>
+        <p>GitHub Pages에 올리면 현재 페이지 주소로 QR이 갱신됩니다.</p>
+        <div class="qr-box">
+          <img id="qrImage" alt="TPQI 공유 QR 코드">
         </div>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes scaleIn{from{opacity:0;transform:scale(0.92)}to{opacity:1;transform:scale(1)}}
-@keyframes barGrow{from{width:0}to{width:var(--w)}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-.anim-fadeup{animation:fadeUp 0.4s ease both}
-.anim-scalein{animation:scaleIn 0.35s ease both}
-.anim-fadein{animation:fadeIn 0.3s ease both}
-.d1{animation-delay:0.05s}.d2{animation-delay:0.1s}.d3{animation-delay:0.15s}.d4{animation-delay:0.2s}.d5{animation-delay:0.25s}
-.wrap{max-width:390px;margin:0 auto;padding:0 0 2rem;font-family:var(--font-sans);color:var(--color-text-primary)}
-.screen{display:none}.screen.on{display:block}
+        <div class="qr-field">
+          <label for="shareUrl">페이지 주소</label>
+          <input id="shareUrl" inputmode="url" placeholder="https://사용자명.github.io/teamdiagnosis/">
+        </div>
+        <div class="qr-actions">
+          <button class="secondary-btn" type="button" id="refreshQr">QR 갱신</button>
+          <a class="secondary-btn" id="openQr" target="_blank" rel="noopener">QR 열기</a>
+        </div>
+      </section>
 
-.intro-top{padding:3rem 1.5rem 1.5rem;text-align:center}
-.logo-pill{display:inline-block;font-size:11px;font-weight:500;letter-spacing:2px;padding:4px 12px;border-radius:20px;border:0.5px solid var(--color-border-secondary);color:var(--color-text-secondary);margin-bottom:1.5rem}
-.intro-top h1{font-size:28px;font-weight:500;line-height:1.3;margin-bottom:8px}
-.intro-top p{font-size:14px;color:var(--color-text-secondary);line-height:1.6}
-.intro-card{margin:0 1rem;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:16px;padding:1.25rem}
-.axis-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1.25rem}
-.axis-pill{font-size:12px;padding:4px 10px;border-radius:20px;background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary)}
-.name-label{font-size:13px;color:var(--color-text-secondary);margin-bottom:6px;display:block}
-.name-field{width:100%;padding:12px 14px;font-size:16px;border-radius:10px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);outline:none;transition:border-color 0.2s}
-.name-field:focus{border-color:var(--color-border-primary)}
-.start-btn{width:100%;margin-top:12px;padding:14px;font-size:15px;font-weight:500;border-radius:10px;border:none;background:var(--color-text-primary);color:var(--color-background-primary);cursor:pointer;transition:opacity 0.2s,transform 0.1s}
-.start-btn:active{transform:scale(0.98);opacity:0.85}
+      <section class="side-section">
+        <h2>최근 진단</h2>
+        <div class="member-list" id="sideMemberList"></div>
+      </section>
+    </aside>
+  </main>
 
-.q-wrap{padding:1.5rem 1.5rem 2rem}
-.q-prog-row{display:flex;align-items:center;gap:10px;margin-bottom:2rem}
-.q-prog-bg{flex:1;height:3px;background:var(--color-border-tertiary);border-radius:2px;overflow:hidden}
-.q-prog-fill{height:100%;background:var(--color-text-primary);border-radius:2px;transition:width 0.4s cubic-bezier(.4,0,.2,1)}
-.q-num{font-size:13px;color:var(--color-text-tertiary);min-width:36px;text-align:right}
-.q-axis-tag{display:inline-block;font-size:11px;font-weight:500;letter-spacing:1px;padding:3px 10px;border-radius:20px;background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary);margin-bottom:1rem}
-.q-text{font-size:18px;font-weight:500;line-height:1.5;margin-bottom:2.5rem;min-height:72px}
-.yn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.yn-btn{padding:16px 12px;font-size:15px;font-weight:500;border-radius:12px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;transition:background 0.15s,transform 0.1s,border-color 0.15s;text-align:center}
-.yn-btn:active{transform:scale(0.96)}
-.yn-btn.y-btn:hover{background:var(--color-background-info);border-color:var(--color-border-info);color:var(--color-text-info)}
-.yn-btn.n-btn:hover{background:var(--color-background-secondary)}
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-.result-wrap{padding:1.5rem}
-.result-hero{text-align:center;padding:2rem 1rem 1.5rem;background:var(--color-background-secondary);border-radius:16px;margin-bottom:1rem}
-.result-name-tag{font-size:13px;color:var(--color-text-secondary);margin-bottom:0.5rem}
-.result-code{font-size:44px;font-weight:500;letter-spacing:8px;margin-bottom:6px;color:var(--color-text-primary)}
-.result-type{font-size:17px;font-weight:500;margin-bottom:8px}
-.result-comment{font-size:13px;color:var(--color-text-secondary);line-height:1.6}
-.section-label{font-size:12px;font-weight:500;letter-spacing:1px;color:var(--color-text-tertiary);margin:1.25rem 0 0.75rem;text-transform:uppercase}
-.axis-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:1rem;margin-bottom:8px}
-.axis-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.axis-card-name{font-size:12px;color:var(--color-text-secondary)}
-.axis-card-winner{font-size:13px;font-weight:500}
-.bar-track{height:4px;background:var(--color-border-tertiary);border-radius:2px;overflow:hidden;margin-bottom:6px}
-.bar-fill{height:100%;border-radius:2px;background:var(--color-text-primary)}
-.axis-card-scores{display:flex;justify-content:space-between;font-size:11px;color:var(--color-text-tertiary)}
-.tip-card{background:var(--color-background-secondary);border-radius:12px;padding:1rem 1.1rem;margin-top:4px}
-.tip-label{font-size:11px;font-weight:500;letter-spacing:1px;color:var(--color-text-tertiary);margin-bottom:4px;text-transform:uppercase}
-.tip-text{font-size:14px;color:var(--color-text-secondary);line-height:1.6}
-.action-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:1rem}
-.act-btn{padding:13px;font-size:14px;font-weight:500;border-radius:10px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;transition:background 0.15s,transform 0.1s;text-align:center}
-.act-btn:active{transform:scale(0.97)}
-.act-btn.primary{background:var(--color-text-primary);color:var(--color-background-primary);border-color:transparent}
+  <script>
+    const axes = [
+      { key: "ROLE", title: "역할", aKorean: "주도형", aCode: "L", bKorean: "지원형", bCode: "S", color: "#0071e3" },
+      { key: "APPROACH", title: "접근", aKorean: "기획형", aCode: "P", bKorean: "실행형", bCode: "E", color: "#34c759" },
+      { key: "STYLE", title: "스타일", aKorean: "정밀형", aCode: "Q", bKorean: "속도형", bCode: "F", color: "#ff9f0a" },
+      { key: "COMMUNICATION", title: "소통", aKorean: "공유형", aCode: "C", bKorean: "독립형", bCode: "I", color: "#00a7d8" }
+    ];
 
-.report-wrap{padding:1.5rem}
-.report-hero{text-align:center;padding:1.5rem 1rem;background:var(--color-background-secondary);border-radius:16px;margin-bottom:1rem}
-.survival-pct{font-size:48px;font-weight:500}
-.survival-sub{font-size:13px;color:var(--color-text-secondary);margin-top:4px}
-.team-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
-.team-avatar{width:36px;height:36px;border-radius:50%;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
-.team-info{flex:1}
-.team-name{font-size:14px;font-weight:500}
-.team-type{font-size:12px;color:var(--color-text-secondary)}
-.team-code-badge{font-size:13px;font-weight:500;letter-spacing:2px;color:var(--color-text-secondary)}
-.verdict-card{background:var(--color-background-secondary);border-radius:12px;padding:1rem;margin-top:1rem;text-align:center;font-size:14px;color:var(--color-text-secondary);line-height:1.6}
-.reset-btn{width:100%;margin-top:1rem;padding:14px;font-size:15px;font-weight:500;border-radius:10px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;transition:background 0.15s}
-.reset-btn:hover{background:var(--color-background-secondary)}
-</style>
+    const questions = [
+      { text: "회의에서 아무도 말을 안 하면 내가 먼저 꺼내는 편이다", axis: "ROLE", isA: true },
+      { text: "팀 방향이 이미 정해져 있으면 굳이 바꾸려 하지 않는다", axis: "ROLE", isA: false },
+      { text: "팀플에서 역할 분담을 내가 먼저 제안하는 편이다", axis: "ROLE", isA: true },
+      { text: "팀 안에서 갈등이 생기면 중재보다 따르는 편이다", axis: "ROLE", isA: false },
+      { text: "잘못된 방향으로 가고 있으면 참지 못하고 수정 의견을 낸다", axis: "ROLE", isA: true },
+      { text: "일을 시작하기 전에 전체 흐름을 머릿속으로 정리하고 시작한다", axis: "APPROACH", isA: true },
+      { text: "계획이 없어도 일단 시작하면 어떻게든 된다고 생각한다", axis: "APPROACH", isA: false },
+      { text: "아이디어가 생기면 검토보다 바로 적용해보고 싶다", axis: "APPROACH", isA: false },
+      { text: "팀플 초반에 역할, 일정, 규칙을 문서로 정리하고 싶다", axis: "APPROACH", isA: true },
+      { text: "중간에 계획이 틀어지면 수정보다 그냥 진행하는 편이다", axis: "APPROACH", isA: false },
+      { text: "제출하고 나서도 더 잘할 수 있었는데 싶어서 아쉬울 때가 많다", axis: "STYLE", isA: true },
+      { text: "마감 시간만 지키면 퀄리티는 어느 정도 타협할 수 있다", axis: "STYLE", isA: false },
+      { text: "폰트, 정렬, 간격 같은 디테일이 눈에 거슬리는 편이다", axis: "STYLE", isA: true },
+      { text: "완성도보다 제출 여부가 더 중요하다고 생각한다", axis: "STYLE", isA: false },
+      { text: "팀원 결과물을 보면 고치고 싶은 부분이 자연스럽게 보인다", axis: "STYLE", isA: true },
+      { text: "내 파트가 조금이라도 진행되면 팀원들에게 바로 공유한다", axis: "COMMUNICATION", isA: true },
+      { text: "완성본이 나오기 전까지는 중간 과정을 굳이 공유 안 한다", axis: "COMMUNICATION", isA: false },
+      { text: "팀원이 어떻게 진행하는지 궁금해서 먼저 물어보는 편이다", axis: "COMMUNICATION", isA: true },
+      { text: "모르는 게 생겨도 혼자 해결하고 나서 공유하는 편이다", axis: "COMMUNICATION", isA: false },
+      { text: "팀 카톡방이 조용하면 내가 먼저 분위기를 만드는 편이다", axis: "COMMUNICATION", isA: true }
+    ];
 
-<h2 class="sr-only">TPQI 팀플 성향 판별기 — 20문항으로 알아보는 나의 팀플 유형</h2>
+    const typeCopy = {
+      LPQC: ["팀플의 교과서형", "이끌고, 기획하고, 꼼꼼하고, 소통까지. 팀플의 로망", "팀원들 의견도 가끔 들어주세요. 당신만 완벽합니다."],
+      LPQI: ["독불장군 완벽주의형", "완벽한데 혼자 함. 팀원들 본의 아니게 버스 탄 나쁜 놈 됨", "공유 한 번만 더 해주세요. 팀원들도 참여하고 싶어요."],
+      LPFC: ["불도저형", "주도적으로 빠르게 이끌며 소통하는 돌격대장", "속도 줄이고 팀원 챙기면 최고의 팀장입니다."],
+      LPFI: ["개인활동형", "빠르게 혼자 다 해버림. 팀플인지 개인플인지 모호", "팀원한테 일 나눠주는 연습을 해보세요."],
+      LEQC: ["실행하는 리더형", "실행력과 꼼꼼함을 갖춘 소통형 리더", "기획도 조금만 하면 완벽한 리더가 됩니다."],
+      LEQI: ["혼자 꼼꼼히 다 하는형", "혼자 꼼꼼하게 다 해오는 무언의 리더", "결과 공유 타이밍을 조금만 앞당겨 보세요."],
+      LEFC: ["빠르고 시끄러운 실행파", "일단 하고 바로 공유. 팀플계의 에너자이저", "이 속도 유지하세요. 팀플계의 보물입니다."],
+      LEFI: ["조용한 돌격대장형", "말없이 빠르게 혼자 처리. 결과로 말하는 타입", "중간 공유만 해줘도 팀원들이 엄청 좋아할 거예요."],
+      SPQC: ["숨은 MVP형", "지원하면서 꼼꼼하고 소통까지. 팀플의 숨은 MVP", "앞에 좀 나서도 됩니다. 충분히 자격 있어요."],
+      SPQI: ["묵묵한 완벽주의형", "말없이 완벽하게 처리. 있는지도 모르다가 결과로 놀람", "중간에 한 번만 공유해줘도 팀원들이 안심합니다."],
+      SPFC: ["빠른 지원군형", "빠르게 지원하고 바로 공유. 팀플의 윤활유", "팀플에 꼭 필요한 존재입니다. 자신감 가지세요."],
+      SPFI: ["조용한 실무형", "조용히 빠르게 처리. 팀플계의 닌자", "카톡 한 줄만 더 보내도 팀원들이 살아납니다."],
+      SEQC: ["팀플의 기둥형", "실행하면서 꼼꼼하고 소통도 잘함. 팀플의 기둥", "기획 단계에서도 의견 내보세요. 잘 하실 거예요."],
+      SEQI: ["혼자 꼼꼼히 처리하는형", "혼자 꼼꼼히 해오는 묵묵한 실행가", "공유 한 번만 더. 팀원들이 당신 믿고 있어요."],
+      SEFC: ["빠르고 협조적인 실행형", "빠르고 협조적. 팀플의 속도원툴", "팀플계의 숨은 MVP입니다. 계속 이렇게 해주세요."],
+      SEFI: ["묵묵한 실행머신형", "묵묵히 빠르게 혼자 처리. 팀플계의 기계", "존재만으로도 팀에 기여 중입니다. 말만 조금 더."]
+    };
 
-<div class="wrap">
+    const storageKey = "tpqi-team-results";
+    const state = {
+      name: "",
+      index: 0,
+      answers: [],
+      lastResult: null,
+      team: loadTeam()
+    };
 
-<div id="s-intro" class="screen on">
-  <div class="intro-top anim-fadeup">
-    <div class="logo-pill">TPQI</div>
-    <h1>나의 팀플<br>유형은?</h1>
-    <p style="margin-top:8px">20문항으로 알아보는<br>팀플 성향 판별기</p>
-  </div>
-  <div class="intro-card anim-fadeup d2">
-    <div class="axis-pills">
-      <span class="axis-pill">주도 / 지원</span>
-      <span class="axis-pill">기획 / 실행</span>
-      <span class="axis-pill">정밀 / 속도</span>
-      <span class="axis-pill">공유 / 독립</span>
-    </div>
-    <span class="name-label">진단할 팀원 이름</span>
-    <input class="name-field" id="nameInput" type="text" placeholder="이름 입력" />
-    <button class="start-btn" onclick="startDiagnosis()">시작하기</button>
-  </div>
-</div>
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 
-<div id="s-question" class="screen">
-  <div class="q-wrap">
-    <div class="q-prog-row">
-      <div class="q-prog-bg"><div class="q-prog-fill" id="progFill" style="width:0%"></div></div>
-      <div class="q-num" id="qNum">1 / 20</div>
-    </div>
-    <div id="qAxisTag" class="q-axis-tag anim-fadein">역할 축</div>
-    <div id="qText" class="q-text anim-fadeup"></div>
-    <div class="yn-row">
-      <button class="yn-btn y-btn anim-fadeup d3" onclick="answer(true)">Y &nbsp; 예</button>
-      <button class="yn-btn n-btn anim-fadeup d4" onclick="answer(false)">N &nbsp; 아니오</button>
-    </div>
-  </div>
-</div>
+    const screens = {
+      home: $("#homeScreen"),
+      quiz: $("#quizScreen"),
+      result: $("#resultScreen"),
+      team: $("#teamScreen")
+    };
 
-<div id="s-result" class="screen">
-  <div class="result-wrap">
-    <div class="result-hero anim-scalein">
-      <div class="result-name-tag" id="rNameTag"></div>
-      <div class="result-code" id="rCode"></div>
-      <div class="result-type" id="rType"></div>
-      <div class="result-comment" id="rComment"></div>
-    </div>
-    <div class="section-label anim-fadeup d1">축별 분석</div>
-    <div id="axisCards"></div>
-    <div class="tip-card anim-fadeup d5">
-      <div class="tip-label">처세술</div>
-      <div class="tip-text" id="rTip"></div>
-    </div>
-    <div class="action-row">
-      <button class="act-btn anim-fadeup" onclick="goReport()">팀 리포트</button>
-      <button class="act-btn primary anim-fadeup d1" onclick="nextMember()">다음 팀원</button>
-    </div>
-  </div>
-</div>
+    $("#startForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const name = $("#nameInput").value.trim();
+      if (!name) {
+        toast("이름을 입력해주세요.");
+        $("#nameInput").focus();
+        return;
+      }
+      startQuiz(name);
+    });
 
-<div id="s-report" class="screen">
-  <div class="report-wrap">
-    <div class="report-hero anim-scalein">
-      <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:4px">팀 생존 가능성</div>
-      <div class="survival-pct" id="survivalPct"></div>
-      <div class="survival-sub" id="survivalSub"></div>
-    </div>
-    <div class="section-label anim-fadeup d1">팀원 목록</div>
-    <div id="teamList" class="anim-fadeup d2"></div>
-    <div class="verdict-card anim-fadeup d3" id="verdictCard"></div>
-    <button class="reset-btn anim-fadeup d4" onclick="resetAll()">처음부터 다시</button>
-  </div>
-</div>
+    $$(".choice-btn").forEach((button) => {
+      button.addEventListener("click", () => {
+        const answer = button.dataset.answer === "true";
+        selectAnswer(answer);
+      });
+    });
 
-</div>
+    $("#prevQuestion").addEventListener("click", () => {
+      if (state.index === 0) {
+        showScreen("home");
+        return;
+      }
+      state.index -= 1;
+      renderQuestion();
+    });
 
-<script>
-const AXES=[
-  {name:'역할',aLabel:'주도형 (L)',bLabel:'지원형 (S)',aCode:'L',bCode:'S'},
-  {name:'접근',aLabel:'기획형 (P)',bLabel:'실행형 (E)',aCode:'P',bCode:'E'},
-  {name:'스타일',aLabel:'정밀형 (Q)',bLabel:'속도형 (F)',aCode:'Q',bCode:'F'},
-  {name:'소통',aLabel:'공유형 (C)',bLabel:'독립형 (I)',aCode:'C',bCode:'I'}
-];
-const QS=[
-  {t:'회의에서 아무도 말을 안 하면 내가 먼저 꺼내는 편이다',a:0,isA:true},
-  {t:'팀 방향이 이미 정해져 있으면 굳이 바꾸려 하지 않는다',a:0,isA:false},
-  {t:'팀플에서 역할 분담을 내가 먼저 제안하는 편이다',a:0,isA:true},
-  {t:'팀 안에서 갈등이 생기면 중재보다 따르는 편이다',a:0,isA:false},
-  {t:'잘못된 방향으로 가고 있으면 참지 못하고 수정 의견을 낸다',a:0,isA:true},
-  {t:'일을 시작하기 전에 전체 흐름을 머릿속으로 정리하고 시작한다',a:1,isA:true},
-  {t:'계획이 없어도 일단 시작하면 어떻게든 된다고 생각한다',a:1,isA:false},
-  {t:'아이디어가 생기면 검토보다 바로 적용해보고 싶다',a:1,isA:false},
-  {t:'팀플 초반에 역할, 일정, 규칙을 문서로 정리하고 싶다',a:1,isA:true},
-  {t:'중간에 계획이 틀어지면 수정보다 그냥 진행하는 편이다',a:1,isA:false},
-  {t:'제출하고 나서도 더 잘할 수 있었는데 싶어서 아쉬울 때가 많다',a:2,isA:true},
-  {t:'마감 시간만 지키면 퀄리티는 어느 정도 타협할 수 있다',a:2,isA:false},
-  {t:'폰트, 정렬, 간격 같은 디테일이 눈에 거슬리는 편이다',a:2,isA:true},
-  {t:'완성도보다 제출 여부가 더 중요하다고 생각한다',a:2,isA:false},
-  {t:'팀원 결과물을 보면 고치고 싶은 부분이 자연스럽게 보인다',a:2,isA:true},
-  {t:'내 파트가 조금이라도 진행되면 팀원들에게 바로 공유한다',a:3,isA:true},
-  {t:'완성본이 나오기 전까지는 중간 과정을 굳이 공유 안 한다',a:3,isA:false},
-  {t:'팀원이 어떻게 진행하는지 궁금해서 먼저 물어보는 편이다',a:3,isA:true},
-  {t:'모르는 게 생겨도 혼자 해결하고 나서 공유하는 편이다',a:3,isA:false},
-  {t:'팀 카톡방이 조용하면 내가 먼저 분위기를 만드는 편이다',a:3,isA:true}
-];
-const TD={
-  LPQC:{n:'팀플 교과서형',c:'이끌고 기획하고 꼼꼼하고 소통까지 — 팀플의 로망',t:'팀원 의견도 가끔 들어주세요. 당신만 완벽합니다.'},
-  LPQI:{n:'고독한 완벽주의 리더형',c:'완벽한데 혼자 함 — 공유 한 번만 더 해주세요',t:'공유 한 번만 더 해주세요. 팀원들도 참여하고 싶어요.'},
-  LPFC:{n:'치고나가는 팀장형',c:'빠르게 이끌고 바로 공유 — 팀플계의 치타',t:'속도 줄이고 팀원 챙기면 최고의 팀장입니다.'},
-  LPFI:{n:'나홀로 돌격대장형',c:'빠르게 혼자 다 해버림 — 팀플인지 개인플인지 모호',t:'팀원한테 일 나눠주는 연습을 해보세요.'},
-  LEQC:{n:'몸으로 이끄는 리더형',c:'실행하면서 꼼꼼하고 소통까지 — 팀플의 기둥',t:'기획도 조금만 하면 완벽한 리더가 됩니다.'},
-  LEQI:{n:'조용한 독주자형',c:'혼자 꼼꼼하게 다 해오는 무언의 실행가',t:'결과 공유 타이밍을 조금만 앞당겨 보세요.'},
-  LEFC:{n:'팀플 에너자이저형',c:'일단 하고 바로 공유 — 팀플계의 에너자이저',t:'이 속도 유지하세요. 팀플계의 보물입니다.'},
-  LEFI:{n:'말없이 해결하는형',c:'말없이 빠르게 혼자 처리 — 결과로 말하는 타입',t:'중간 공유만 해줘도 팀원들이 엄청 좋아할 거예요.'},
-  SPQC:{n:'팀플의 숨은 MVP형',c:'지원하면서 꼼꼼하고 소통까지 — 팀플의 숨은 MVP',t:'앞에 좀 나서도 됩니다. 충분히 자격 있어요.'},
-  SPQI:{n:'그림자 장인형',c:'말없이 완벽하게 처리 — 있는지도 모르다가 결과로 놀람',t:'중간에 한 번만 공유해줘도 팀원들이 안심합니다.'},
-  SPFC:{n:'팀플의 윤활유형',c:'빠르게 지원하고 바로 공유 — 팀플의 윤활유',t:'팀플에 꼭 필요한 존재입니다. 자신감 가지세요.'},
-  SPFI:{n:'묵묵히 제 몫 하는형',c:'조용히 빠르게 처리 — 팀플계의 닌자',t:'카톡 한 줄만 더 보내도 팀원들이 살아납니다.'},
-  SEQC:{n:'팀플의 기둥형',c:'실행하면서 꼼꼼하고 소통도 잘함 — 팀플의 기둥',t:'기획 단계에서도 의견 내보세요. 잘 하실 거예요.'},
-  SEQI:{n:'혼자서 완성하는형',c:'혼자 꼼꼼히 해오는 묵묵한 실행가',t:'공유 한 번만 더 — 팀원들이 당신 믿고 있어요.'},
-  SEFC:{n:'팀플의 숨은 엔진형',c:'빠르고 협조적 — 팀플의 숨은 엔진',t:'팀플계의 숨은 MVP입니다. 계속 이렇게 해주세요.'},
-  SEFI:{n:'결과로 말하는형',c:'묵묵히 빠르게 혼자 처리 — 팀플계의 기계',t:'존재만으로도 팀에 기여 중입니다. 말만 조금 더.'}
-};
+    $("#addMember").addEventListener("click", resetToHome);
+    $("#addMemberFromTeam").addEventListener("click", resetToHome);
+    $("#openTeamFromHome").addEventListener("click", () => {
+      renderTeamReport();
+      showScreen("team");
+    });
+    $("#openTeamFromResult").addEventListener("click", () => {
+      renderTeamReport();
+      showScreen("team");
+    });
+    $("#clearAllFromHome").addEventListener("click", clearTeam);
+    $("#clearAllFromTeam").addEventListener("click", clearTeam);
+    $("#refreshQr").addEventListener("click", updateQr);
+    $("#shareUrl").addEventListener("change", updateQr);
 
-let name='',curQ=0,aS=[0,0,0,0],bS=[0,0,0,0],team=[];
+    function startQuiz(name) {
+      state.name = name;
+      state.index = 0;
+      state.answers = new Array(questions.length);
+      $("#quizName").textContent = `${name} 진단`;
+      renderQuestion();
+      showScreen("quiz");
+    }
 
-function show(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
-  document.getElementById(id).classList.add('on');
-}
+    function selectAnswer(answer) {
+      state.answers[state.index] = answer;
+      $$(".choice-btn").forEach((button) => {
+        button.classList.toggle("selected", button.dataset.answer === String(answer));
+      });
 
-function reflow(el){void el.offsetWidth}
+      window.setTimeout(() => {
+        if (state.index < questions.length - 1) {
+          state.index += 1;
+          renderQuestion();
+        } else {
+          finishDiagnosis();
+        }
+      }, 160);
+    }
 
-function animateScreen(id){
-  show(id);
-  const s=document.getElementById(id);
-  s.querySelectorAll('.anim-fadeup,.anim-scalein,.anim-fadein').forEach(el=>{
-    el.style.animation='none';
-    reflow(el);
-    el.style.animation='';
-  });
-}
+    function renderQuestion() {
+      const question = questions[state.index];
+      const axis = axes.find((item) => item.key === question.axis);
+      const savedAnswer = state.answers[state.index];
+      const percent = ((state.index + 1) / questions.length) * 100;
 
-function startDiagnosis(){
-  const n=document.getElementById('nameInput').value.trim();
-  if(!n){document.getElementById('nameInput').focus();return;}
-  name=n;curQ=0;aS=[0,0,0,0];bS=[0,0,0,0];
-  renderQ();
-  animateScreen('s-question');
-}
+      $("#progressText").textContent = `Q${state.index + 1} / ${questions.length}`;
+      $("#progressBar").style.width = `${percent}%`;
+      $("#axisChip").textContent = `${axis.title} · ${axis.aKorean} / ${axis.bKorean}`;
+      $("#questionText").textContent = question.text;
+      $$(".choice-btn").forEach((button) => {
+        button.classList.toggle("selected", button.dataset.answer === String(savedAnswer));
+      });
+    }
 
-function renderQ(){
-  const q=QS[curQ];
-  const ax=AXES[q.a];
-  const pct=Math.round(curQ/20*100);
-  document.getElementById('progFill').style.width=pct+'%';
-  document.getElementById('qNum').textContent=(curQ+1)+' / 20';
-  const tag=document.getElementById('qAxisTag');
-  tag.textContent=ax.name+' 축  ·  '+ax.aLabel+' vs '+ax.bLabel;
-  tag.style.animation='none';reflow(tag);tag.style.animation='';
-  const qt=document.getElementById('qText');
-  qt.style.animation='none';reflow(qt);qt.style.animation='';
-  qt.textContent=q.t;
-}
+    function finishDiagnosis() {
+      const result = diagnose(state.name, state.answers);
+      state.lastResult = result;
+      state.team.push(result);
+      saveTeam();
+      renderResult(result);
+      renderSharedLists();
+      showScreen("result");
+    }
 
-function answer(isY){
-  if(isY){
-    const q=QS[curQ];
-    if(q.isA)aS[q.a]++;else bS[q.a]++;
-  }
-  curQ++;
-  if(curQ<20){renderQ();}
-  else{showResult();}
-}
+    function diagnose(name, answers) {
+      const aScores = [0, 0, 0, 0];
+      const bScores = [0, 0, 0, 0];
 
-function showResult(){
-  document.getElementById('progFill').style.width='100%';
-  let code='';
-  for(let i=0;i<4;i++) code+=aS[i]>=bS[i]?AXES[i].aCode:AXES[i].bCode;
-  const d=TD[code]||{n:'미분류형',c:'희귀종 출현',t:'팀원들과 대화를 늘려보세요.'};
-  team.push({name,code,typeName:d.n});
+      questions.forEach((question, index) => {
+        if (!answers[index]) return;
+        const axisIndex = axes.findIndex((axis) => axis.key === question.axis);
+        if (question.isA) aScores[axisIndex] += 1;
+        else bScores[axisIndex] += 1;
+      });
 
-  document.getElementById('rNameTag').textContent=name;
-  document.getElementById('rCode').textContent=code;
-  document.getElementById('rType').textContent=d.n;
-  document.getElementById('rComment').textContent=d.c;
-  document.getElementById('rTip').textContent=d.t;
+      const typeCode = axes.map((axis, index) => (
+        aScores[index] >= bScores[index] ? axis.aCode : axis.bCode
+      )).join("");
 
-  let html='';
-  for(let i=0;i<4;i++){
-    const tot=aS[i]+bS[i];
-    const aPct=tot===0?50:Math.round(aS[i]/tot*100);
-    const winner=aS[i]>=bS[i]?AXES[i].aLabel:AXES[i].bLabel;
-    html+=`<div class="axis-card anim-fadeup d${i+1}">
-      <div class="axis-card-top">
-        <span class="axis-card-name">${AXES[i].name}</span>
-        <span class="axis-card-winner">${winner}</span>
-      </div>
-      <div class="bar-track"><div class="bar-fill" style="width:${aPct}%"></div></div>
-      <div class="axis-card-scores"><span>${AXES[i].aLabel} ${aS[i]}점</span><span>${bS[i]}점 ${AXES[i].bLabel}</span></div>
-    </div>`;
-  }
-  document.getElementById('axisCards').innerHTML=html;
-  animateScreen('s-result');
-}
+      return {
+        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        name,
+        typeCode,
+        aScores,
+        bScores,
+        createdAt: new Date().toISOString()
+      };
+    }
 
-function goReport(){
-  const cC=team.filter(r=>r.code[3]==='C').length;
-  const lC=team.filter(r=>r.code[0]==='L').length;
-  const sz=team.length;
-  const rate=Math.min(Math.round(cC/sz*50)+(lC===0?0:lC===1?30:15)+20,100);
+    function renderResult(result) {
+      const copy = getTypeCopy(result.typeCode);
+      $("#resultCode").textContent = result.typeCode;
+      $("#resultName").textContent = copy[0];
+      $("#resultComment").textContent = copy[1];
+      $("#resultPerson").textContent = result.name;
+      $("#resultTip").textContent = copy[2];
 
-  document.getElementById('survivalPct').textContent=rate+'%';
-  const comments=[[80,'드림팀입니다. 다음 팀플도 같이 하세요.'],[60,'그럭저럭 굴러가는 팀. 누군가 희생 중입니다.'],[40,'팀플인지 생존게임인지 불분명합니다.'],[20,'해체를 진지하게 고려해보세요.'],[0,'이미 늦었습니다. 각자 도생하세요.']];
-  document.getElementById('survivalSub').textContent=comments.find(([t])=>rate>=t)[1];
+      $("#axisList").innerHTML = axes.map((axis, index) => {
+        const code = result.typeCode[index];
+        const korean = code === axis.aCode ? axis.aKorean : axis.bKorean;
+        const total = result.aScores[index] + result.bScores[index];
+        const ratio = total === 0 ? 50 : Math.round((result.aScores[index] / total) * 100);
+        return `
+          <article class="axis-row">
+            <div class="axis-head">
+              <div>
+                <small>${axis.title}</small>
+                <strong>${axis.aKorean}(${axis.aCode}) vs ${axis.bKorean}(${axis.bCode})</strong>
+              </div>
+              <b>${korean} · ${code}</b>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width:${ratio}%; background:${axis.color}"></div>
+            </div>
+            <div class="axis-labels">
+              <span>${axis.aCode} ${result.aScores[index]}</span>
+              <span>${result.bScores[index]} ${axis.bCode}</span>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
 
-  const initials=n=>n.length>=2?n.slice(0,2):n;
-  document.getElementById('teamList').innerHTML=team.map(r=>`
-    <div class="team-item">
-      <div class="team-avatar">${initials(r.name)}</div>
-      <div class="team-info">
-        <div class="team-name">${r.name}</div>
-        <div class="team-type">${r.typeName}</div>
-      </div>
-      <div class="team-code-badge">${r.code}</div>
-    </div>`).join('');
+    function renderTeamReport() {
+      const size = state.team.length;
+      const rate = size >= 2 ? calcSurvivalRate() : 0;
+      $("#rateRing").style.setProperty("--rate", `${rate}%`);
+      $("#survivalRate").textContent = `${rate}%`;
+      $("#teamHeadline").textContent = size >= 2 ? `${size}명 팀 분석 완료` : "팀원 분석 대기 중";
+      $("#teamComment").textContent = size >= 2 ? getTeamComment(rate) : "팀원 2명 이상이면 최종 리포트가 완성됩니다.";
 
-  document.getElementById('verdictCard').textContent=rate>=80?'팀원 구성이 이상적입니다. 이 팀 계속 하세요.':rate>=60?'소통형을 조금 더 늘리면 드림팀이 됩니다.':rate>=40?'기획형과 공유형이 더 필요합니다.':'팀 구성 재고를 권장합니다.';
-  animateScreen('s-report');
-}
+      $("#memberList").innerHTML = size
+        ? state.team.map(renderMemberRow).join("")
+        : `<div class="empty">아직 저장된 진단 결과가 없습니다.</div>`;
+      renderSharedLists();
+    }
 
-function nextMember(){
-  document.getElementById('nameInput').value='';
-  animateScreen('s-intro');
-}
+    function renderSharedLists() {
+      $("#teamCount").textContent = `${state.team.length}명`;
+      $("#sideMemberList").innerHTML = state.team.length
+        ? state.team.slice(-5).reverse().map(renderMemberRow).join("")
+        : `<div class="empty">진단 후 기록이 표시됩니다.</div>`;
+    }
 
-function resetAll(){
-  team=[];
-  document.getElementById('nameInput').value='';
-  animateScreen('s-intro');
-}
-</script>
+    function renderMemberRow(result) {
+      const copy = getTypeCopy(result.typeCode);
+      return `
+        <article class="member-row">
+          <div class="member-head">
+            <div>
+              <small>${copy[0]}</small>
+              <strong>${escapeHtml(result.name)}</strong>
+            </div>
+            <b>${result.typeCode}</b>
+          </div>
+        </article>
+      `;
+    }
 
-      </div>`;
-  }
-  document.getElementById('axisResult').innerHTML = axisHTML;
-  show('s-result');
-}
+    function calcSurvivalRate() {
+      const size = state.team.length;
+      if (size === 0) return 0;
 
-function goTeamReport() {
-  const list = document.getElementById('teamList');
-  list.innerHTML = teamResults.map(r =>
-    `<div class="team-row"><span>${r.name}</span><span class="team-code">${r.code}</span><span style="font-size:13px;color:var(--color-text-secondary);">${r.typeName}</span></div>`
-  ).join('');
+      let communicatorCount = 0;
+      let leaderCount = 0;
+      state.team.forEach((result) => {
+        if (result.typeCode.charAt(3) === "C") communicatorCount += 1;
+        if (result.typeCode.charAt(0) === "L") leaderCount += 1;
+      });
 
-  const cCount = teamResults.filter(r => r.code[3] === 'C').length;
-  const lCount = teamResults.filter(r => r.code[0] === 'L').length;
-  const size = teamResults.length;
-  const commRate = Math.round(cCount / size * 50);
-  const leaderRate = lCount === 0 ? 0 : lCount === 1 ? 30 : 15;
-  const rate = Math.min(commRate + leaderRate + 20, 100);
+      const commRate = Math.trunc((communicatorCount / size) * 50);
+      const leaderRate = leaderCount === 0 ? 0 : leaderCount === 1 ? 30 : 15;
+      return Math.min(commRate + leaderRate + 20, 100);
+    }
 
-  document.getElementById('survivalNum').textContent = rate + '%';
-  const comments = [
-    [80, '드림팀입니다. 다음 팀플도 같이 하세요.'],
-    [60, '그럭저럭 굴러가는 팀. 누군가 희생 중입니다.'],
-    [40, '팀플인지 생존게임인지 불분명합니다.'],
-    [20, '해체를 진지하게 고려해보세요.'],
-    [0,  '이미 늦었습니다. 각자 도생하세요.']
-  ];
-  document.getElementById('teamComment').textContent = comments.find(([threshold]) => rate >= threshold)[1];
-  show('s-report');
-}
+    function getTeamComment(rate) {
+      if (rate >= 80) return "드림팀입니다. 다음 팀플 때도 어떻게든 꼬시세요.";
+      if (rate >= 60) return "그럭저럭 굴러가는 팀. 하지만 힘들어하는 누군가 한 명쯤은 있을 것 같군요.";
+      if (rate >= 40) return "팀플인지 생존게임인지 불분명합니다.";
+      if (rate >= 20) return "해체하는 것을 진지하게 고려해보세요.";
+      return "답 없습니다. 각자 도생하세요.";
+    }
 
-function resetForNext() {
-  document.getElementById('nameInput').value = '';
-  show('s-intro');
-}
+    function getTypeCopy(typeCode) {
+      return typeCopy[typeCode] || ["알 수 없는 유형", "분류 불가", "팀원들과 대화를 늘려보세요."];
+    }
 
-function resetAll() {
-  teamResults = [];
-  document.getElementById('nameInput').value = '';
-  show('s-intro');
-}
-</script>
+    function showScreen(name) {
+      Object.entries(screens).forEach(([key, screen]) => {
+        screen.classList.toggle("active", key === name);
+      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function resetToHome() {
+      $("#nameInput").value = "";
+      showScreen("home");
+      window.setTimeout(() => $("#nameInput").focus(), 120);
+    }
+
+    function clearTeam() {
+      if (!state.team.length) {
+        toast("초기화할 기록이 없습니다.");
+        return;
+      }
+      state.team = [];
+      state.lastResult = null;
+      saveTeam();
+      renderSharedLists();
+      renderTeamReport();
+      toast("진단 기록을 초기화했습니다.");
+    }
+
+    function loadTeam() {
+      try {
+        const raw = localStorage.getItem(storageKey);
+        return raw ? JSON.parse(raw) : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveTeam() {
+      localStorage.setItem(storageKey, JSON.stringify(state.team));
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function updateQr() {
+      const input = $("#shareUrl");
+      const currentUrl = input.value.trim() || getDefaultShareUrl();
+      input.value = currentUrl;
+
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=16&data=${encodeURIComponent(currentUrl)}`;
+      $("#qrImage").src = qrUrl;
+      $("#openQr").href = qrUrl;
+    }
+
+    function getDefaultShareUrl() {
+      return window.location.href.split("#")[0];
+    }
+
+    let toastTimer = 0;
+    function toast(message) {
+      const toastEl = $("#toast");
+      toastEl.textContent = message;
+      toastEl.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => toastEl.classList.remove("show"), 2200);
+    }
+
+    updateQr();
+    renderSharedLists();
+  </script>
+</body>
+</html>
